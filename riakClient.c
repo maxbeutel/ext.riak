@@ -26,6 +26,18 @@ static function_entry riakClient_methods[] = {
 
     PHP_ME(riakClient, isAlive, NULL, ZEND_ACC_PUBLIC)
     
+    PHP_ME(riakClient, bucket, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, buckets, NULL, ZEND_ACC_PUBLIC)
+    
+    PHP_ME(riakClient, add, NULL, ZEND_ACC_PUBLIC)
+    
+    PHP_ME(riakClient, search, NULL, ZEND_ACC_PUBLIC)
+    
+    PHP_ME(riakClient, link, NULL, ZEND_ACC_PUBLIC)
+    
+    PHP_ME(riakClient, map, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, reduce, NULL, ZEND_ACC_PUBLIC)
+    
     {NULL, NULL, NULL}
 };
 
@@ -36,11 +48,11 @@ void riak_init_riakClient(TSRMLS_D) {
     INIT_CLASS_ENTRY(ce, "riakClient", riakClient_methods);
     riak_ce_riakClient = zend_register_internal_class(&ce TSRMLS_CC);
     
-    zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, "127.0.0.1", ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_string(riak_ce_riakClient, RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, "127.0.0.1", ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 8098, ZEND_ACC_PROTECTED TSRMLS_CC);
-    zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, "riak", ZEND_ACC_PROTECTED TSRMLS_CC);
-    zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, "mapred", ZEND_ACC_PROTECTED TSRMLS_CC);
-    zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, "", ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_string(riak_ce_riakClient, RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, "riak", ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_string(riak_ce_riakClient, RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, "mapred", ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_string(riak_ce_riakClient, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, "", ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 2, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, 2, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, 2, ZEND_ACC_PROTECTED TSRMLS_CC);
@@ -212,6 +224,38 @@ PHP_METHOD(riakClient, isAlive) {
     
     zend_error(E_WARNING, "Could not initialize request");
 }
+
+PHP_METHOD(riakClient, bucket) {
+
+}
+
+PHP_METHOD(riakClient, buckets) {
+
+}
+
+PHP_METHOD(riakClient, add) {
+
+}
+
+PHP_METHOD(riakClient, search) {
+
+}
+
+PHP_METHOD(riakClient, link) {
+
+}
+
+PHP_METHOD(riakClient, map) {
+
+}
+
+PHP_METHOD(riakClient, reduce) {
+
+}
+
+
+
+
 
 
 

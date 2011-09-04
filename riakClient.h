@@ -41,4 +41,20 @@ PHP_METHOD(riakClient, getClientId);
 
 PHP_METHOD(riakClient, isAlive);
 
+PHP_METHOD(riakClient, bucket);
+PHP_METHOD(riakClient, buckets);
+
+PHP_METHOD(riakClient, add);
+
+PHP_METHOD(riakClient, search);
+
+PHP_METHOD(riakClient, link);
+
+PHP_METHOD(riakClient, map);
+PHP_METHOD(riakClient, reduce);
+
 #endif
+
+
+
+
