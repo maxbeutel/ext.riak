@@ -1,0 +1,5 @@
+#define PHP_RIAK_EXTNAME "riak"
+#define PHP_RIAK_VERSION "0.01"
+
+PHP_MINIT_FUNCTION(riak);
+
