@@ -1,3 +1,4 @@
+
 #ifndef RIAK_CLIENT_H
 #define RIAK_CLIENT_H
 

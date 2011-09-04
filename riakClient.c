@@ -1,5 +1,10 @@
 #include <php.h>
+
 #include <ext/spl/php_spl.h>
+
+#include <curl/curl.h>
+#include <curl/types.h>
+#include <curl/easy.h>
 
 #include "riakClient.h"
 
@@ -175,7 +180,36 @@ PHP_METHOD(riakClient, getClientId) {
 }
 
 PHP_METHOD(riakClient, isAlive) {
-    php_printf("TODO!!!");
+    /* TODO: put curl stuff in helper functions */
+    CURL *curl;
+    CURLcode res;
+    
+    struct curl_slist *chunk = NULL;
+    long http_code = 0;
+    
+    curl = curl_easy_init();
+    
+    if(curl) {
+        chunk = curl_slist_append(chunk, "X-Riak-ClientId: FOOO");
+        
+        /* TODO: build rial url */
+        curl_easy_setopt(curl, CURLOPT_URL, "http://www.nashweb.de");
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
+        res = curl_easy_perform(curl);
+        
+        curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &http_code);
+        
+        curl_easy_cleanup(curl);
+        
+        if (http_code == 200 && res != CURLE_ABORTED_BY_CALLBACK) {
+            RETURN_TRUE;
+        } else {
+            RETURN_FALSE;
+        }
+    
+    }
+    
+    zend_error(E_WARNING, "Could not initialize request");
 }
 
 
