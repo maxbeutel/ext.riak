@@ -1,4 +1,5 @@
 #include <php.h>
+#include <ext/spl/php_spl.h>
 
 #include "riakClient.h"
 
@@ -34,14 +35,10 @@ void riak_init_riakClient(TSRMLS_D) {
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 8098, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, "riak", ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, "mapred", ZEND_ACC_PROTECTED TSRMLS_CC);
-
-    /* TODO */    
     zend_declare_property_string (riak_ce_riakClient, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, "", ZEND_ACC_PROTECTED TSRMLS_CC);
-
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 2, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, 2, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(riak_ce_riakClient, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, 2, ZEND_ACC_PROTECTED TSRMLS_CC);
-
 }
 
 PHP_METHOD(riakClient, __construct) {
@@ -55,6 +52,9 @@ PHP_METHOD(riakClient, __construct) {
     
     char *mapred_prefix;
     int mapred_prefix_len;
+    
+    char *object_hash;
+    char *client_id;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|slss", &host, &host_len, &port, &prefix, &prefix_len, &mapred_prefix, &mapred_prefix_len) == FAILURE) {
         return;
@@ -75,6 +75,18 @@ PHP_METHOD(riakClient, __construct) {
     if (mapred_prefix_len > 0) {
         zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, mapred_prefix, mapred_prefix_len TSRMLS_CC);
     }
+    
+    zval *object = getThis();
+    
+    object_hash = emalloc(33);
+    php_spl_object_hash(object, object_hash TSRMLS_CC);
+    
+    spprintf(&client_id, 37, "php_%s", object_hash);
+    
+    zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, client_id, strlen(client_id) TSRMLS_CC);
+    
+    efree(object_hash);
+    efree(client_id);
 }
 
 
