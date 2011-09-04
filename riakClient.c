@@ -10,36 +10,80 @@
 
 zend_class_entry *riak_ce_riakClient;
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 2) || PHP_MAJOR_VERSION > 5
+#   define RIAK_ARG_INFO
+#else
+#   define RIAK_ARG_INFO static
+#endif
+
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_empty, 0)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakClient_construct, 0)
+	ZEND_ARG_INFO(0, host)
+	ZEND_ARG_INFO(0, port)
+	ZEND_ARG_INFO(0, prefix)
+	ZEND_ARG_INFO(0, mapred_prefix)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakClient_setR, 0)
+	ZEND_ARG_INFO(0, r)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakClient_setW, 0)
+	ZEND_ARG_INFO(0, w)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakClient_setDW, 0)
+	ZEND_ARG_INFO(0, dw)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakClient_bucket, 0)
+	ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+
+
+
+
 static function_entry riakClient_methods[] = {
-    PHP_ME(riakClient, __construct, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, __construct, arginfo_riakClient_construct, ZEND_ACC_PUBLIC)
 
     PHP_ME(riakClient, getR, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(riakClient, setR, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, setR, arginfo_riakClient_setR, ZEND_ACC_PUBLIC)
 
     PHP_ME(riakClient, getW, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(riakClient, setW, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, setW, arginfo_riakClient_setW, ZEND_ACC_PUBLIC)
 
     PHP_ME(riakClient, getDW, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(riakClient, setDW, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, setDW, arginfo_riakClient_setDW, ZEND_ACC_PUBLIC)
     
     PHP_ME(riakClient, getClientId, NULL, ZEND_ACC_PUBLIC)
 
     PHP_ME(riakClient, isAlive, NULL, ZEND_ACC_PUBLIC)
     
-    PHP_ME(riakClient, bucket, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, bucket, arginfo_riakClient_bucket, ZEND_ACC_PUBLIC)
     PHP_ME(riakClient, buckets, NULL, ZEND_ACC_PUBLIC)
     
-    PHP_ME(riakClient, add, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, add, NULL, ZEND_ACC_PUBLIC) /* TODO: add arginfo */
     
-    PHP_ME(riakClient, search, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, search, NULL, ZEND_ACC_PUBLIC) /* TODO: add arginfo */
     
-    PHP_ME(riakClient, link, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, link, NULL, ZEND_ACC_PUBLIC) /* TODO: add arginfo */
     
-    PHP_ME(riakClient, map, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(riakClient, reduce, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakClient, map, NULL, ZEND_ACC_PUBLIC) /* TODO: add arginfo */
+    PHP_ME(riakClient, reduce, NULL, ZEND_ACC_PUBLIC) /* TODO: add arginfo */
     
     {NULL, NULL, NULL}
 };
+
 
 
 void riak_init_riakClient(TSRMLS_D) {
@@ -215,6 +259,7 @@ PHP_METHOD(riakClient, isAlive) {
         
         curl_easy_cleanup(curl);
         
+        /* TODO: use /ping resource, not response status */
         if (http_code == 200 && res != CURLE_ABORTED_BY_CALLBACK) {
             RETURN_TRUE;
         } else {
