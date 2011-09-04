@@ -190,9 +190,10 @@ PHP_METHOD(riakClient, isAlive) {
     curl = curl_easy_init();
     
     if(curl) {
+        /* TODO: add client id header */
         chunk = curl_slist_append(chunk, "X-Riak-ClientId: FOOO");
         
-        /* TODO: build rial url */
+        /* TODO: build riak url */
         curl_easy_setopt(curl, CURLOPT_URL, "http://www.nashweb.de");
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
         res = curl_easy_perform(curl);
@@ -206,7 +207,6 @@ PHP_METHOD(riakClient, isAlive) {
         } else {
             RETURN_FALSE;
         }
-    
     }
     
     zend_error(E_WARNING, "Could not initialize request");
