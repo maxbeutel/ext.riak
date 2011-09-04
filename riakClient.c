@@ -81,6 +81,7 @@ PHP_METHOD(riakClient, __construct) {
         zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, mapred_prefix, mapred_prefix_len TSRMLS_CC);
     }
     
+    /* TODO: put this in separate function */
     zval *object = getThis();
     
     object_hash = emalloc(33);
