@@ -6,15 +6,9 @@
 #include <curl/types.h>
 #include <curl/easy.h>
 
+#include "riak_shared.h"
 #include "riakClient.h"
-
-zend_class_entry *riak_ce_riakClient;
-
-#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 2) || PHP_MAJOR_VERSION > 5
-#   define RIAK_ARG_INFO
-#else
-#   define RIAK_ARG_INFO static
-#endif
+#include "riakBucket.h"
 
 
 RIAK_ARG_INFO
@@ -271,7 +265,14 @@ PHP_METHOD(riakClient, isAlive) {
 }
 
 PHP_METHOD(riakClient, bucket) {
-
+    zval *name;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &name) == FAILURE) {
+        return;
+    }
+    
+    object_init_ex(return_value, riak_ce_riakBucket);
+    CALL_METHOD2(riakBucket, __construct, return_value, return_value, getThis(), name);
 }
 
 PHP_METHOD(riakClient, buckets) {

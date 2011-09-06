@@ -2,6 +2,8 @@
 #ifndef RIAK_CLIENT_H
 #define RIAK_CLIENT_H
 
+zend_class_entry *riak_ce_riakClient;
+
 #define RIAK_CLIENT_HOST "host"
 #define RIAK_CLIENT_HOST_LEN strlen(RIAK_CLIENT_HOST)
 
