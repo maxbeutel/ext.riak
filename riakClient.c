@@ -240,7 +240,7 @@ PHP_METHOD(riakClient, isAlive) {
     
     curl = curl_easy_init();
     
-    if(curl) {
+    if (curl) {
         /* TODO: add client id header */
         chunk = curl_slist_append(chunk, "X-Riak-ClientId: FOOO");
         
