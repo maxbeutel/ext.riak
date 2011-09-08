@@ -276,29 +276,53 @@ PHP_METHOD(riakClient, isAlive) {
     struct riak_curl_response response;
     
     char *status_ok = "OK";
+    char *ping_url;
+    char *client_id_header;
+    
+    char* host;
+    char* client_id;
+    long port;
     
     int comparision_res;
     
     curl = curl_easy_init();
     
     if (curl) {
+        /* build ping request url */   
+        host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
+        port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
+        
+        spprintf(&ping_url, strlen(host) + 1 + sizeof(port) + strlen("/ping"), "%s:%d/ping", host, port);
+        
+        /* build client id header */
+        client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+        
+        spprintf(&client_id_header, strlen("X-Riak-ClientId: ") + strlen(client_id), "X-Riak-ClientId: %s", client_id);
+        
+
+        
+        
+        /* exec request */
         riak_curl_response_init(&response);
         
-        /* TODO: add client id header */
-        curl_slist_append(chunk, "X-Riak-ClientId: FOOO");
-        
-        /* TODO: build riak url */
-        curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:8098/ping");        
+        curl_slist_append(chunk, client_id_header);
+        curl_easy_setopt(curl, CURLOPT_URL, ping_url);        
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
         
         res = curl_easy_perform(curl);
         
-        comparision_res = strcmp(status_ok, response.response_body);
-        efree(response.response_body);
-        
         curl_easy_cleanup(curl);
         
+        
+        comparision_res = strcmp(status_ok, response.response_body);
+        
+        
+        /* cleanup */
+        efree(response.response_body);
+        efree(ping_url);
+        efree(client_id_header);
+
         if (comparision_res == 0) {
             RETURN_TRUE;
         } else {
