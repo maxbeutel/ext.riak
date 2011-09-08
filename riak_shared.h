@@ -1,3 +1,6 @@
+#ifndef RIAK_SHARED_H
+#define RIAK_SHARED_H
+
 /* arginfo helper constant */
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 2) || PHP_MAJOR_VERSION > 5
 #   define RIAK_ARG_INFO
@@ -35,3 +38,6 @@
   PUSH_PARAM(param1); PUSH_PARAM(param2);                               \
   CALL_METHOD_HELPER(classname, name, retval, thisptr, 3, param3);     \
   POP_PARAM(); POP_PARAM();
+  
+  
+#endif  
