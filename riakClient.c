@@ -241,21 +241,12 @@ struct riak_curl_response {
 void riak_curl_response_init(struct riak_curl_response *s) {
     s->len = 0;
     s->response_body = emalloc(s->len + 1);
-    
-    if (s->response_body == NULL) {
-        return;
-    }
-    
     s->response_body[0] = '\0';
 }
 
 size_t writefunc(void *ptr, size_t size, size_t nmemb, struct riak_curl_response *s) {
     size_t new_len = s->len + size * nmemb;
     s->response_body = erealloc(s->response_body, new_len + 1);
-    
-    if (s->response_body == NULL) {
-        return;
-    }
     
     memcpy(s->response_body + s->len, ptr, size*nmemb);
     s->response_body[new_len] = '\0';
