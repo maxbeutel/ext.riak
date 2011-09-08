@@ -230,35 +230,80 @@ PHP_METHOD(riakClient, getClientId) {
     zval_copy_ctor(return_value);
 }
 
+
+
+
+struct riak_curl_response {
+    char *response_body;
+    size_t len;
+};
+
+void riak_curl_response_init(struct riak_curl_response *s) {
+    s->len = 0;
+    s->response_body = emalloc(s->len + 1);
+    
+    if (s->response_body == NULL) {
+        return;
+    }
+    
+    s->response_body[0] = '\0';
+}
+
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct riak_curl_response *s) {
+    size_t new_len = s->len + size * nmemb;
+    s->response_body = erealloc(s->response_body, new_len + 1);
+    
+    if (s->response_body == NULL) {
+        return;
+    }
+    
+    memcpy(s->response_body + s->len, ptr, size*nmemb);
+    s->response_body[new_len] = '\0';
+    s->len = new_len;
+    
+    return size * nmemb;
+}
+
+
+
+
 PHP_METHOD(riakClient, isAlive) {
     /* TODO: put curl stuff in helper functions */
     CURL *curl;
     CURLcode res;
     
-    struct curl_slist *chunk = NULL;
-    long http_code = 0;
+    struct curl_slist *chunk;
+    struct riak_curl_response response;
+    
+    char *status_ok = "OK";
+    
+    int comparision_res;
     
     curl = curl_easy_init();
     
     if (curl) {
+        riak_curl_response_init(&response);
+        
         /* TODO: add client id header */
-        chunk = curl_slist_append(chunk, "X-Riak-ClientId: FOOO");
+        curl_slist_append(chunk, "X-Riak-ClientId: FOOO");
         
         /* TODO: build riak url */
-        curl_easy_setopt(curl, CURLOPT_URL, "http://www.nashweb.de");
-        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
+        curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:8098/ping");        
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        
         res = curl_easy_perform(curl);
         
-        curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &http_code);
+        comparision_res = strcmp(status_ok, response.response_body);
+        efree(response.response_body);
         
         curl_easy_cleanup(curl);
         
-        /* TODO: use /ping resource, not response status */
-        if (http_code == 200 && res != CURLE_ABORTED_BY_CALLBACK) {
+        if (comparision_res == 0) {
             RETURN_TRUE;
         } else {
             RETURN_FALSE;
-        }
+        }   
     }
     
     zend_error(E_WARNING, "Could not initialize request");
