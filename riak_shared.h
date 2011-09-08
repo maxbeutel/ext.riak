@@ -9,6 +9,7 @@
 #endif
 
 /* macros for calling object methods */
+/* @TODO prefix with RIAK_ */
 #define PUSH_PARAM(arg) zend_vm_stack_push(arg TSRMLS_CC)
 #define POP_PARAM() (void)zend_vm_stack_pop(TSRMLS_C)
 #define PUSH_EO_PARAM()
