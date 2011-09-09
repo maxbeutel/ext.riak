@@ -1,6 +1,7 @@
 #include <php.h>
 
 #include <ext/spl/php_spl.h>
+#include <ext/json/php_json.h>
 
 #include <curl/curl.h>
 #include <curl/types.h>
@@ -351,6 +352,8 @@ PHP_METHOD(riakClient, buckets) {
     long port;
     char *prefix;
     
+    zval *json;
+    
     curl = curl_easy_init();
     
     if (curl) {
@@ -359,9 +362,8 @@ PHP_METHOD(riakClient, buckets) {
         port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
         prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
         
+        /* @TODO use asprintf */
         spprintf(&bucket_list_url, strlen(host) + 1 + sizeof(port) + 1 + strlen(prefix) + strlen("?buckets=true"), "%s:%ld/%s?buckets=true", host, port, prefix);
-        
-        php_printf("BUCKETS: %s", bucket_list_url);
         
         /* build client id header */
         client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
@@ -385,9 +387,20 @@ PHP_METHOD(riakClient, buckets) {
         
         php_printf("RESPONSE: %s", response.response_body);
         
+        
+        if (response.len > 0) {
+            php_json_decode(&json, response.response_body, response.len, 1, 2 TSRMLS_CC);
+            array_init(return_value);
+            
+        } else {
+            array_init(return_value);
+        }
+        
         efree(bucket_list_url);
         efree(client_id_header);
         efree(response.response_body);
+        
+        return;
     }
     
     zend_error(E_WARNING, "Could not initialize request");
