@@ -263,15 +263,15 @@ PHP_METHOD(riakClient, isAlive) {
     CURL *curl;
     CURLcode res;
     
-    struct curl_slist *chunk;
+    struct curl_slist *headers = NULL;
     struct riak_curl_response response;
     
     char *status_ok = "OK";
     char *ping_url;
     char *client_id_header;
     
-    char* host;
-    char* client_id;
+    char *host;
+    char *client_id;
     long port;
     
     int comparision_res;
@@ -283,26 +283,26 @@ PHP_METHOD(riakClient, isAlive) {
         host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
         port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
         
-        spprintf(&ping_url, strlen(host) + 1 + sizeof(port) + strlen("/ping"), "%s:%d/ping", host, port);
+        spprintf(&ping_url, strlen(host) + 1 + sizeof(port) + strlen("/ping"), "%s:%ld/ping", host, port);
         
         /* build client id header */
         client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
         
         spprintf(&client_id_header, strlen("X-Riak-ClientId: ") + strlen(client_id), "X-Riak-ClientId: %s", client_id);
         
-
-        
-        
         /* exec request */
         riak_curl_response_init(&response);
         
-        curl_slist_append(chunk, client_id_header);
+        headers = curl_slist_append(headers, client_id_header);
+        
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
         curl_easy_setopt(curl, CURLOPT_URL, ping_url);        
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
         
         res = curl_easy_perform(curl);
         
+        curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
         
         
@@ -336,7 +336,61 @@ PHP_METHOD(riakClient, bucket) {
 }
 
 PHP_METHOD(riakClient, buckets) {
-
+    /* TODO: put curl stuff in helper functions */
+    CURL *curl;
+    CURLcode res;
+    
+    struct curl_slist *headers = NULL;
+    struct riak_curl_response response;
+    
+    char *bucket_list_url;
+    char *client_id_header;
+    
+    char *host;
+    char *client_id;
+    long port;
+    char *prefix;
+    
+    curl = curl_easy_init();
+    
+    if (curl) {
+        /* build ping request url */   
+        host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
+        port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
+        prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
+        
+        spprintf(&bucket_list_url, strlen(host) + 1 + sizeof(port) + 1 + strlen(prefix) + strlen("?buckets=true"), "%s:%ld/%s?buckets=true", host, port, prefix);
+        
+        php_printf("BUCKETS: %s", bucket_list_url);
+        
+        /* build client id header */
+        client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+        
+        spprintf(&client_id_header, strlen("X-Riak-ClientId: ") + strlen(client_id), "X-Riak-ClientId: %s", client_id);
+        
+        /* exec request */
+        riak_curl_response_init(&response);
+        
+        headers = curl_slist_append(headers, client_id_header);
+        
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+        curl_easy_setopt(curl, CURLOPT_URL, bucket_list_url);        
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        
+        res = curl_easy_perform(curl);
+        
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+        
+        php_printf("RESPONSE: %s", response.response_body);
+        
+        efree(bucket_list_url);
+        efree(client_id_header);
+        efree(response.response_body);
+    }
+    
+    zend_error(E_WARNING, "Could not initialize request");
 }
 
 PHP_METHOD(riakClient, add) {
