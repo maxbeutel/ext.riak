@@ -138,12 +138,12 @@ PHP_METHOD(riakClient, __construct) {
     object_hash = emalloc(33);
     php_spl_object_hash(object, object_hash TSRMLS_CC);
     
-    spprintf(&client_id, 37, "php_%s", object_hash);
+    asprintf(&client_id, "php_%s", object_hash);
     
     zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, client_id, strlen(client_id) TSRMLS_CC);
     
     efree(object_hash);
-    efree(client_id);
+    free(client_id);
 }
 
 
@@ -284,12 +284,12 @@ PHP_METHOD(riakClient, isAlive) {
         host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
         port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
         
-        spprintf(&ping_url, strlen(host) + 1 + sizeof(port) + strlen("/ping"), "%s:%ld/ping", host, port);
+        asprintf(&ping_url, "%s:%ld/ping", host, port);
         
         /* build client id header */
         client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
         
-        spprintf(&client_id_header, strlen("X-Riak-ClientId: ") + strlen(client_id), "X-Riak-ClientId: %s", client_id);
+        asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
         
         /* exec request */
         riak_curl_response_init(&response);
@@ -312,8 +312,8 @@ PHP_METHOD(riakClient, isAlive) {
         
         /* cleanup */
         efree(response.response_body);
-        efree(ping_url);
-        efree(client_id_header);
+        free(ping_url);
+        free(client_id_header);
 
         if (comparision_res == 0) {
             RETURN_TRUE;
@@ -362,13 +362,12 @@ PHP_METHOD(riakClient, buckets) {
         port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
         prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
         
-        /* @TODO use asprintf */
-        spprintf(&bucket_list_url, strlen(host) + 1 + sizeof(port) + 1 + strlen(prefix) + strlen("?buckets=true"), "%s:%ld/%s?buckets=true", host, port, prefix);
+        asprintf(&bucket_list_url, "%s:%ld/%s?buckets=true", host, port, prefix);
         
         /* build client id header */
         client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
         
-        spprintf(&client_id_header, strlen("X-Riak-ClientId: ") + strlen(client_id), "X-Riak-ClientId: %s", client_id);
+        asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
         
         /* exec request */
         riak_curl_response_init(&response);
@@ -389,15 +388,18 @@ PHP_METHOD(riakClient, buckets) {
         
         
         if (response.len > 0) {
-            php_json_decode(&json, response.response_body, response.len, 1, 2 TSRMLS_CC);
+            MAKE_STD_ZVAL(json);
+            
+            php_json_decode(json, response.response_body, response.len, 1, 2 TSRMLS_CC);
             array_init(return_value);
             
+            efree(json);
         } else {
             array_init(return_value);
         }
         
-        efree(bucket_list_url);
-        efree(client_id_header);
+        free(bucket_list_url);
+        free(client_id_header);
         efree(response.response_body);
         
         return;
