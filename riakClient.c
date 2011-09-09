@@ -367,6 +367,7 @@ PHP_METHOD(riakClient, buckets) {
         /* build client id header */
         client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
         
+        /* @TODO add error handling to all asprintf calls */
         asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
         
         /* exec request */
@@ -389,9 +390,53 @@ PHP_METHOD(riakClient, buckets) {
         
         if (response.len > 0) {
             MAKE_STD_ZVAL(json);
+            array_init(return_value);
             
             php_json_decode(json, response.response_body, response.len, 1, 2 TSRMLS_CC);
-            array_init(return_value);
+            
+            
+            
+            
+            
+            
+HashTable *hindex = Z_ARRVAL_P(json);
+HashPosition pointer;
+zval **data;
+ 
+for(zend_hash_internal_pointer_reset_ex(hindex, &pointer);
+    zend_hash_get_current_data_ex(hindex, (void**)&data, &pointer) == SUCCESS;
+    zend_hash_move_forward_ex(hindex, &pointer)) {
+ 
+  char *key;
+  uint key_len, key_type;
+  ulong index;
+ 
+  key_type = zend_hash_get_current_key_ex(hindex, &key, &key_len, &index, 0, &pointer);
+ 
+  switch (key_type) {
+  case HASH_KEY_IS_STRING:
+    // associative array keys
+    php_printf("key: %s\n", key);
+    break;
+  case HASH_KEY_IS_LONG:
+    // numeric indexes
+    php_printf("index: %d\n", index);
+    break;
+  default:
+    php_printf("error\n");
+  }
+}
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
             efree(json);
         } else {
