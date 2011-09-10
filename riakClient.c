@@ -352,7 +352,7 @@ PHP_METHOD(riakClient, buckets) {
     long port;
     char *prefix;
     
-    zval *json;
+    zval *buckets;
     
 
 HashTable *buckets_response_hash;
@@ -395,86 +395,62 @@ zval **data_2;
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
         
-        php_printf("RESPONSE: %s\n", response.response_body);
-        
+        /*php_printf("RESPONSE: %s\n", response.response_body);*/
         
         if (response.len > 0) {
-
-            MAKE_STD_ZVAL(json);
-            php_json_decode(json, response.response_body, response.len, 1, 20 TSRMLS_CC);
+            array_init(return_value);
             
-            
-
-       
-            buckets_response_hash = Z_ARRVAL_P(json);  
-
-             
-            
-
-    
-    
-            
-zend_hash_internal_pointer_reset_ex(buckets_response_hash, &buckets_response_pointer);
-zend_hash_get_current_data_ex(buckets_response_hash, (void**) &buckets_response_array, &buckets_response_pointer);
-zend_hash_move_forward_ex(buckets_response_hash, &buckets_response_pointer);
-
-zval temp;
-
-temp = **buckets_response_array;
-zval_copy_ctor(&temp);
-
-
-
-array_init(return_value);
-
-
-arr_hash_2 = Z_ARRVAL_P(&temp); 
-
-for(zend_hash_internal_pointer_reset_ex(arr_hash_2, &pointer_2); zend_hash_get_current_data_ex(arr_hash_2, (void**) &data_2, &pointer_2) == SUCCESS; zend_hash_move_forward_ex(arr_hash_2, &pointer_2)) {
-    zval temp_2;
-    long index;
-    char *key;
-    int key_len;
-    
-    zend_hash_get_current_key_ex(arr_hash_2, &key, &key_len, &index, 0, &pointer_2);
-
-    temp_2 = **data_2;
-    zval_copy_ctor(&temp_2);
-    convert_to_string(&temp_2);
-    php_printf("- Bucket name: ");
-    PHPWRITE(Z_STRVAL(temp_2), Z_STRLEN(temp_2));
-    php_printf("\n");
-    
-
-    zval *bucket_instance;
-    MAKE_STD_ZVAL(bucket_instance);
-    
-
-    object_init_ex(bucket_instance, riak_ce_riakBucket);
-    CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &temp_2);
-    
-    add_next_index_zval(return_value, bucket_instance);
+            /* decode json string */
+            MAKE_STD_ZVAL(buckets);
+            php_json_decode(buckets, response.response_body, response.len, 1, 20 TSRMLS_CC);
  
-    zval_dtor(&temp_2);
-    /*
-    
-    
-*/
-} 
+            /* get array with bucket names from "buckets" key */
+            buckets_response_hash = Z_ARRVAL_P(buckets);  
 
+            zend_hash_internal_pointer_reset_ex(buckets_response_hash, &buckets_response_pointer);
+            zend_hash_get_current_data_ex(buckets_response_hash, (void**) &buckets_response_array, &buckets_response_pointer);
+            zend_hash_move_forward_ex(buckets_response_hash, &buckets_response_pointer);
 
+            /* iterate over array with bucket names */
+            zval temp;
+            
+            temp = **buckets_response_array;
+            zval_copy_ctor(&temp);
+            
+            arr_hash_2 = Z_ARRVAL_P(&temp); 
+            
+            for(zend_hash_internal_pointer_reset_ex(arr_hash_2, &pointer_2); zend_hash_get_current_data_ex(arr_hash_2, (void**) &data_2, &pointer_2) == SUCCESS; zend_hash_move_forward_ex(arr_hash_2, &pointer_2)) {
+                zval temp_2;
+                long index;
+                char *key;
+                int key_len;
+                
+                zend_hash_get_current_key_ex(arr_hash_2, &key, &key_len, &index, 0, &pointer_2);
+            
+                temp_2 = **data_2;
+                zval_copy_ctor(&temp_2);
+                convert_to_string(&temp_2);
+                
+                /*
+                php_printf("- Bucket name: ");
+                PHPWRITE(Z_STRVAL(temp_2), Z_STRLEN(temp_2));
+                php_printf("\n");
+                */
+            
+                zval *bucket_instance;
+                MAKE_STD_ZVAL(bucket_instance);
+                
+                /* create bucket instance, add to return array */
+                object_init_ex(bucket_instance, riak_ce_riakBucket);
+                CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &temp_2);
+                
+                add_next_index_zval(return_value, bucket_instance);
+             
+                zval_dtor(&temp_2);
+            } 
 
-
-
-php_printf("\n");
-php_printf("\n");
-
-zval_dtor(&temp);
-zval_ptr_dtor(&json);;
-
-
-
-
+            zval_dtor(&temp);
+            zval_ptr_dtor(&buckets);
         } else {
             array_init(return_value);
         }
