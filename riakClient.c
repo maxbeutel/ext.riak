@@ -351,13 +351,13 @@ PHP_METHOD(riakClient, buckets) {
     char *client_id;
     long port;
     char *prefix;
-    /*
-    zval *json;*/
+    
+    zval *json;
     
 
-HashTable *bucket_names_hash;
-HashPosition bucket_names_pointer;
-zval **bucket_names;
+HashTable *buckets_response_hash;
+HashPosition buckets_response_pointer;
+zval **buckets_response_array;
 
 HashTable *arr_hash_2;
 HashPosition pointer_2;
@@ -400,34 +400,32 @@ zval **data_2;
         
         if (response.len > 0) {
 
-            
-            php_json_decode(return_value, response.response_body, response.len, 1, 20 TSRMLS_CC);
-            
-            
+            MAKE_STD_ZVAL(json);
+            php_json_decode(json, response.response_body, response.len, 1, 20 TSRMLS_CC);
             
             
-            
-        
-            bucket_names_hash = Z_ARRVAL_P(return_value);  
 
-            
+       
+            buckets_response_hash = Z_ARRVAL_P(json);  
+
+             
             
 
     
     
             
-zend_hash_internal_pointer_reset_ex(bucket_names_hash, &bucket_names_pointer);
-zend_hash_get_current_data_ex(bucket_names_hash, (void**) &bucket_names, &bucket_names_pointer);
-zend_hash_move_forward_ex(bucket_names_hash, &bucket_names_pointer);
+zend_hash_internal_pointer_reset_ex(buckets_response_hash, &buckets_response_pointer);
+zend_hash_get_current_data_ex(buckets_response_hash, (void**) &buckets_response_array, &buckets_response_pointer);
+zend_hash_move_forward_ex(buckets_response_hash, &buckets_response_pointer);
 
 zval temp;
 
-temp = **bucket_names;
+temp = **buckets_response_array;
 zval_copy_ctor(&temp);
 
 
 
-
+array_init(return_value);
 
 
 arr_hash_2 = Z_ARRVAL_P(&temp); 
@@ -447,30 +445,32 @@ for(zend_hash_internal_pointer_reset_ex(arr_hash_2, &pointer_2); zend_hash_get_c
     PHPWRITE(Z_STRVAL(temp_2), Z_STRLEN(temp_2));
     php_printf("\n");
     
-    
+
     zval *bucket_instance;
     MAKE_STD_ZVAL(bucket_instance);
     
-    
+
     object_init_ex(bucket_instance, riak_ce_riakBucket);
     CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &temp_2);
     
-    add_index_zval(return_value, index, bucket_instance);
-    
+    add_next_index_zval(return_value, bucket_instance);
+ 
     zval_dtor(&temp_2);
+    /*
     
     
-    
-    
+*/
 } 
 
 
 
 
+
 php_printf("\n");
 php_printf("\n");
+
 zval_dtor(&temp);
-            
+zval_ptr_dtor(&json);;
 
 
 
