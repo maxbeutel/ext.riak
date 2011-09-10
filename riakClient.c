@@ -351,8 +351,18 @@ PHP_METHOD(riakClient, buckets) {
     char *client_id;
     long port;
     char *prefix;
+    /*
+    zval *json;*/
     
-    zval *json;
+
+HashTable *arr_hash;
+HashPosition pointer;
+zval **data;
+
+HashTable *arr_hash_2;
+HashPosition pointer_2;
+zval **data_2;
+    
     
     curl = curl_easy_init();
     
@@ -385,52 +395,125 @@ PHP_METHOD(riakClient, buckets) {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
         
-        php_printf("RESPONSE: %s", response.response_body);
+        php_printf("RESPONSE: %s\n", response.response_body);
         
         
         if (response.len > 0) {
-            MAKE_STD_ZVAL(json);
+            /*MAKE_STD_ZVAL(json);
+            array_init(json);
             array_init(return_value);
-            
-            php_json_decode(json, response.response_body, response.len, 1, 2 TSRMLS_CC);
-            
+            */
             
             
             
-            
-            
-HashTable *hindex = Z_ARRVAL_P(json);
-HashPosition pointer;
-zval **data;
- 
-for(zend_hash_internal_pointer_reset_ex(hindex, &pointer);
-    zend_hash_get_current_data_ex(hindex, (void**)&data, &pointer) == SUCCESS;
-    zend_hash_move_forward_ex(hindex, &pointer)) {
- 
-  char *key;
-  uint key_len, key_type;
-  ulong index;
- 
-  key_type = zend_hash_get_current_key_ex(hindex, &key, &key_len, &index, 0, &pointer);
- 
-  switch (key_type) {
-  case HASH_KEY_IS_STRING:
-    // associative array keys
-    php_printf("key: %s\n", key);
-    break;
-  case HASH_KEY_IS_LONG:
-    // numeric indexes
-    php_printf("index: %d\n", index);
-    break;
-  default:
-    php_printf("error\n");
-  }
-}
+            php_json_decode(return_value, response.response_body, response.len, 1, 20 TSRMLS_CC);
             
             
             
             
             
+        
+            arr_hash = Z_ARRVAL_P(return_value);  
+
+            
+            
+      /*      
+            php_printf("The array passed contains %d elements\n", array_count);
+    */        
+    
+    
+    
+    
+            
+zend_hash_internal_pointer_reset_ex(arr_hash, &pointer);
+zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer);
+zend_hash_move_forward_ex(arr_hash, &pointer);
+
+zval temp;
+
+temp = **data;
+zval_copy_ctor(&temp);
+
+
+
+/*
+convert_to_string(&temp);
+php_printf("\n");
+php_printf("\n");
+*/
+
+
+arr_hash_2 = Z_ARRVAL_P(&temp); 
+
+for(zend_hash_internal_pointer_reset_ex(arr_hash_2, &pointer_2); zend_hash_get_current_data_ex(arr_hash_2, (void**) &data_2, &pointer_2) == SUCCESS; zend_hash_move_forward_ex(arr_hash_2, &pointer_2)) {
+    zval temp_2;
+    long index;
+    char *key;
+    int key_len;
+    
+    zend_hash_get_current_key_ex(arr_hash_2, &key, &key_len, &index, 0, &pointer_2);
+
+    temp_2 = **data_2;
+    zval_copy_ctor(&temp_2);
+    convert_to_string(&temp_2);
+    php_printf("- Bucket name: ");
+    PHPWRITE(Z_STRVAL(temp_2), Z_STRLEN(temp_2));
+    php_printf("\n");
+    
+    
+    zval *bucket_instance;
+    MAKE_STD_ZVAL(bucket_instance);
+    
+    
+    object_init_ex(bucket_instance, riak_ce_riakBucket);
+    CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &temp_2);
+    
+    add_index_zval(return_value, index, bucket_instance);
+    
+    zval_dtor(&temp_2);
+    
+    
+    
+    
+} 
+
+
+/*
+PHPWRITE(Z_STRVAL(temp), Z_STRLEN(temp));
+*/
+
+
+php_printf("\n");
+php_printf("\n");
+zval_dtor(&temp);
+            
+
+
+
+/*
+for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
+
+    zval temp;
+    char *key;
+    int key_len;
+    long index;
+
+    if (zend_hash_get_current_key_ex(arr_hash, &key, &key_len, &index, 0, &pointer) == HASH_KEY_IS_STRING) {
+        PHPWRITE(key, key_len);
+    } else {
+        php_printf("%ld", index);
+    }
+
+    php_printf(" => ");
+
+    temp = **data;
+    zval_copy_ctor(&temp);
+    convert_to_string(&temp);
+    PHPWRITE(Z_STRVAL(temp), Z_STRLEN(temp));
+    php_printf(" ");
+    zval_dtor(&temp);
+} 
+  */  
             
             
             
@@ -438,7 +521,12 @@ for(zend_hash_internal_pointer_reset_ex(hindex, &pointer);
             
             
             
+            
+            
+            
+            /*
             efree(json);
+            */
         } else {
             array_init(return_value);
         }
