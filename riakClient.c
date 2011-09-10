@@ -355,9 +355,9 @@ PHP_METHOD(riakClient, buckets) {
     zval *json;*/
     
 
-HashTable *arr_hash;
-HashPosition pointer;
-zval **data;
+HashTable *bucket_names_hash;
+HashPosition bucket_names_pointer;
+zval **bucket_names;
 
 HashTable *arr_hash_2;
 HashPosition pointer_2;
@@ -408,7 +408,7 @@ zval **data_2;
             
             
         
-            arr_hash = Z_ARRVAL_P(return_value);  
+            bucket_names_hash = Z_ARRVAL_P(return_value);  
 
             
             
@@ -416,13 +416,13 @@ zval **data_2;
     
     
             
-zend_hash_internal_pointer_reset_ex(arr_hash, &pointer);
-zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer);
-zend_hash_move_forward_ex(arr_hash, &pointer);
+zend_hash_internal_pointer_reset_ex(bucket_names_hash, &bucket_names_pointer);
+zend_hash_get_current_data_ex(bucket_names_hash, (void**) &bucket_names, &bucket_names_pointer);
+zend_hash_move_forward_ex(bucket_names_hash, &bucket_names_pointer);
 
 zval temp;
 
-temp = **data;
+temp = **bucket_names;
 zval_copy_ctor(&temp);
 
 
