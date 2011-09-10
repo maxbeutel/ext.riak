@@ -399,12 +399,7 @@ zval **data_2;
         
         
         if (response.len > 0) {
-            /*MAKE_STD_ZVAL(json);
-            array_init(json);
-            array_init(return_value);
-            */
-            
-            
+
             
             php_json_decode(return_value, response.response_body, response.len, 1, 20 TSRMLS_CC);
             
@@ -417,11 +412,7 @@ zval **data_2;
 
             
             
-      /*      
-            php_printf("The array passed contains %d elements\n", array_count);
-    */        
-    
-    
+
     
     
             
@@ -436,11 +427,7 @@ zval_copy_ctor(&temp);
 
 
 
-/*
-convert_to_string(&temp);
-php_printf("\n");
-php_printf("\n");
-*/
+
 
 
 arr_hash_2 = Z_ARRVAL_P(&temp); 
@@ -478,9 +465,6 @@ for(zend_hash_internal_pointer_reset_ex(arr_hash_2, &pointer_2); zend_hash_get_c
 } 
 
 
-/*
-PHPWRITE(Z_STRVAL(temp), Z_STRLEN(temp));
-*/
 
 
 php_printf("\n");
@@ -490,43 +474,7 @@ zval_dtor(&temp);
 
 
 
-/*
-for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
 
-    zval temp;
-    char *key;
-    int key_len;
-    long index;
-
-    if (zend_hash_get_current_key_ex(arr_hash, &key, &key_len, &index, 0, &pointer) == HASH_KEY_IS_STRING) {
-        PHPWRITE(key, key_len);
-    } else {
-        php_printf("%ld", index);
-    }
-
-    php_printf(" => ");
-
-    temp = **data;
-    zval_copy_ctor(&temp);
-    convert_to_string(&temp);
-    PHPWRITE(Z_STRVAL(temp), Z_STRLEN(temp));
-    php_printf(" ");
-    zval_dtor(&temp);
-} 
-  */  
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            /*
-            efree(json);
-            */
         } else {
             array_init(return_value);
         }
