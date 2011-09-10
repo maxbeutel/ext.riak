@@ -306,11 +306,8 @@ PHP_METHOD(riakClient, isAlive) {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
         
-        
         comparision_res = strcmp(status_ok, response.response_body);
         
-        
-        /* cleanup */
         efree(response.response_body);
         free(ping_url);
         free(client_id_header);
@@ -344,41 +341,28 @@ PHP_METHOD(riakClient, buckets) {
     struct curl_slist *headers = NULL;
     struct riak_curl_response response;
     
-    char *bucket_list_url;
-    char *client_id_header;
-    
     char *host;
     char *client_id;
     long port;
     char *prefix;
-    
-    zval *buckets;
-    
 
-HashTable *buckets_response_hash;
-HashPosition buckets_response_pointer;
-zval **buckets_response_array;
+    char *bucket_list_url;
+    char *client_id_header;
+     
+    host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
+    port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
+    prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
 
-HashTable *arr_hash_2;
-HashPosition pointer_2;
-zval **data_2;
+    asprintf(&bucket_list_url, "%s:%ld/%s?buckets=true", host, port, prefix);
+         
+    asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
     
     
     curl = curl_easy_init();
     
     if (curl) {
-        /* build ping request url */   
-        host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
-        port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
-        prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
-        
-        asprintf(&bucket_list_url, "%s:%ld/%s?buckets=true", host, port, prefix);
-        
         /* build client id header */
         client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
-        
-        /* @TODO add error handling to all asprintf calls */
-        asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
         
         /* exec request */
         riak_curl_response_init(&response);
@@ -401,10 +385,19 @@ zval **data_2;
             array_init(return_value);
             
             /* decode json string */
+            zval *buckets;
             MAKE_STD_ZVAL(buckets);
             php_json_decode(buckets, response.response_body, response.len, 1, 20 TSRMLS_CC);
  
             /* get array with bucket names from "buckets" key */
+            HashTable *buckets_response_hash;
+            HashPosition buckets_response_pointer;
+            zval **buckets_response_array;
+            
+            HashTable *bucket_names_hash;
+            HashPosition bucket_names_pointer;
+            zval **bucket_names_array;
+            
             buckets_response_hash = Z_ARRVAL_P(buckets);  
 
             zend_hash_internal_pointer_reset_ex(buckets_response_hash, &buckets_response_pointer);
@@ -412,44 +405,40 @@ zval **data_2;
             zend_hash_move_forward_ex(buckets_response_hash, &buckets_response_pointer);
 
             /* iterate over array with bucket names */
-            zval temp;
+            zval buckets_item;
             
-            temp = **buckets_response_array;
-            zval_copy_ctor(&temp);
+            buckets_item = **buckets_response_array;
+            zval_copy_ctor(&buckets_item);
             
-            arr_hash_2 = Z_ARRVAL_P(&temp); 
+            bucket_names_hash = Z_ARRVAL_P(&buckets_item); 
             
-            for(zend_hash_internal_pointer_reset_ex(arr_hash_2, &pointer_2); zend_hash_get_current_data_ex(arr_hash_2, (void**) &data_2, &pointer_2) == SUCCESS; zend_hash_move_forward_ex(arr_hash_2, &pointer_2)) {
-                zval temp_2;
+            for (zend_hash_internal_pointer_reset_ex(bucket_names_hash, &bucket_names_pointer); 
+                 zend_hash_get_current_data_ex(bucket_names_hash, (void**) &bucket_names_array, &bucket_names_pointer) == SUCCESS; 
+                 zend_hash_move_forward_ex(bucket_names_hash, &bucket_names_pointer)) {
+                zval bucket_name;
                 long index;
                 char *key;
                 int key_len;
                 
-                zend_hash_get_current_key_ex(arr_hash_2, &key, &key_len, &index, 0, &pointer_2);
+                zend_hash_get_current_key_ex(bucket_names_hash, &key, &key_len, &index, 0, &bucket_names_pointer);
             
-                temp_2 = **data_2;
-                zval_copy_ctor(&temp_2);
-                convert_to_string(&temp_2);
+                bucket_name = **bucket_names_array;
+                zval_copy_ctor(&bucket_name);
+                convert_to_string(&bucket_name);
                 
-                /*
-                php_printf("- Bucket name: ");
-                PHPWRITE(Z_STRVAL(temp_2), Z_STRLEN(temp_2));
-                php_printf("\n");
-                */
-            
                 zval *bucket_instance;
                 MAKE_STD_ZVAL(bucket_instance);
                 
                 /* create bucket instance, add to return array */
                 object_init_ex(bucket_instance, riak_ce_riakBucket);
-                CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &temp_2);
+                CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &bucket_name);
                 
                 add_next_index_zval(return_value, bucket_instance);
              
-                zval_dtor(&temp_2);
+                zval_dtor(&bucket_name);
             } 
 
-            zval_dtor(&temp);
+            zval_dtor(&buckets_item);
             zval_ptr_dtor(&buckets);
         } else {
             array_init(return_value);
