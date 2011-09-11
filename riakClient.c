@@ -138,12 +138,14 @@ PHP_METHOD(riakClient, __construct) {
     object_hash = emalloc(33);
     php_spl_object_hash(object, object_hash TSRMLS_CC);
     
-    asprintf(&client_id, "php_%s", object_hash);
-    
-    zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, client_id, strlen(client_id) TSRMLS_CC);
+    if (asprintf(&client_id, "php_%s", object_hash) > 0) {
+        zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, client_id, strlen(client_id) TSRMLS_CC);
+        free(client_id);
+    } else {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
     
     efree(object_hash);
-    free(client_id);
 }
 
 
@@ -277,20 +279,22 @@ PHP_METHOD(riakClient, isAlive) {
     
     int comparision_res;
     
+    host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
+    port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
+    
+    if (asprintf(&ping_url, "%s:%ld/ping", host, port) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
+    
+    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    
+    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
+    
     curl = curl_easy_init();
     
     if (curl) {
-        /* build ping request url */   
-        host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
-        port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
-        
-        asprintf(&ping_url, "%s:%ld/ping", host, port);
-        
-        /* build client id header */
-        client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
-        
-        asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
-        
         /* exec request */
         riak_curl_response_init(&response);
         
@@ -353,10 +357,14 @@ PHP_METHOD(riakClient, buckets) {
     port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
     prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
 
-    asprintf(&bucket_list_url, "%s:%ld/%s?buckets=true", host, port, prefix);
-         
-    asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id);
     
+    if (asprintf(&bucket_list_url, "%s:%ld/%s?buckets=true", host, port, prefix) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
+         
+    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
     
     curl = curl_easy_init();
     
