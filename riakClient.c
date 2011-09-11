@@ -460,26 +460,32 @@ PHP_METHOD(riakClient, buckets) {
     }
     
     zend_error(E_WARNING, "Could not initialize request");
+    RETURN_NULL();
 }
 
 PHP_METHOD(riakClient, add) {
-
+    zend_error(E_WARNING, "Map/Reduce functionality not yet implemented");
+    RETURN_NULL();
 }
 
 PHP_METHOD(riakClient, search) {
-
+    zend_error(E_WARNING, "Map/Reduce functionality not yet implemented");
+    RETURN_NULL();
 }
 
 PHP_METHOD(riakClient, link) {
-
+    zend_error(E_WARNING, "Map/Reduce functionality not yet implemented");
+    RETURN_NULL();
 }
 
 PHP_METHOD(riakClient, map) {
-
+    zend_error(E_WARNING, "Map/Reduce functionality not yet implemented");
+    RETURN_NULL();
 }
 
 PHP_METHOD(riakClient, reduce) {
-
+    zend_error(E_WARNING, "Map/Reduce functionality not yet implemented");
+    RETURN_NULL();
 }
 
 
