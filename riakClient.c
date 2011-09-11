@@ -17,7 +17,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_empty, 0)
 ZEND_END_ARG_INFO()
 
 RIAK_ARG_INFO
-ZEND_BEGIN_ARG_INFO(arginfo_riakClient_construct, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakClient_construct, 0, 0, 0)
 	ZEND_ARG_INFO(0, host)
 	ZEND_ARG_INFO(0, port)
 	ZEND_ARG_INFO(0, prefix)

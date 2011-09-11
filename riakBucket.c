@@ -15,10 +15,95 @@ ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_construct, 0)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setR, 0)
+	ZEND_ARG_INFO(0, r)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setW, 0)
+	ZEND_ARG_INFO(0, w)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setDW, 0)
+	ZEND_ARG_INFO(0, dw)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakBucket_newObject, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, data)	
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakBucket_newBinary, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, data)	
+	ZEND_ARG_INFO(0, contentType)		
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakBucket_get, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, r)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakBucket_getBinary, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, r)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setNVal, 0)
+	ZEND_ARG_INFO(0, nval)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setAllowMultiples, 0)
+	ZEND_ARG_INFO(0, nval)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setProperty, 0)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, value)	
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_getProperty, 0)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
+RIAK_ARG_INFO
+ZEND_BEGIN_ARG_INFO(arginfo_riakBucket_setProperties, 0)
+	ZEND_ARG_ARRAY_INFO(0, properties, 0)
+ZEND_END_ARG_INFO()
+
 
 static function_entry riakBucket_methods[] = {
     PHP_ME(riakBucket, __construct, arginfo_riakBucket_construct, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, getName, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, getR, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, setR, arginfo_riakBucket_setR, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, getW, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, setW, arginfo_riakBucket_setW, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, getDW, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, setDW, arginfo_riakBucket_setDW, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, newObject, arginfo_riakBucket_newObject, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, newBinary, arginfo_riakBucket_newBinary, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, get, arginfo_riakBucket_get, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, getBinary, arginfo_riakBucket_getBinary, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, setNVal, arginfo_riakBucket_setNVal, ZEND_ACC_PUBLIC)    
+    PHP_ME(riakBucket, getNVal, NULL, ZEND_ACC_PUBLIC)    
+    PHP_ME(riakBucket, setAllowMultiples, arginfo_riakBucket_setAllowMultiples, ZEND_ACC_PUBLIC)    
+    PHP_ME(riakBucket, getAllowMultiples, NULL, ZEND_ACC_PUBLIC)    
+    PHP_ME(riakBucket, setProperty, arginfo_riakBucket_setProperty, ZEND_ACC_PUBLIC)    
+    PHP_ME(riakBucket, getProperty, arginfo_riakBucket_getProperty, ZEND_ACC_PUBLIC)    
+    PHP_ME(riakBucket, setProperties, arginfo_riakBucket_setProperties, ZEND_ACC_PUBLIC)   
+    PHP_ME(riakBucket, getProperties, NULL, ZEND_ACC_PUBLIC)       
+    PHP_ME(riakBucket, getKeys, NULL, ZEND_ACC_PUBLIC)     
     
     {NULL, NULL, NULL}
 };
@@ -53,3 +138,81 @@ PHP_METHOD(riakBucket, __construct) {
 
 PHP_METHOD(riakBucket, getName) {
 }
+
+PHP_METHOD(riakBucket, getR) {
+}
+
+PHP_METHOD(riakBucket, setR) {
+}
+
+PHP_METHOD(riakBucket, getW) {
+}
+
+PHP_METHOD(riakBucket, setW) {
+}
+
+PHP_METHOD(riakBucket, getDW) {
+}
+
+PHP_METHOD(riakBucket, setDW) {
+}
+
+PHP_METHOD(riakBucket, newObject) {
+    char *key;
+    int key_len;
+    
+    zval *data;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &key, &key_len, &data) == FAILURE) {
+        return;
+    }
+    
+    RETURN_NULL();
+}
+
+PHP_METHOD(riakBucket, newBinary) {
+}
+
+PHP_METHOD(riakBucket, get) {
+}
+
+PHP_METHOD(riakBucket, getBinary) {
+}
+
+PHP_METHOD(riakBucket, getNVal) {
+}
+
+PHP_METHOD(riakBucket, setNVal) {
+}
+
+PHP_METHOD(riakBucket, setAllowMultiples) {
+}
+
+PHP_METHOD(riakBucket, getAllowMultiples) {
+}
+
+PHP_METHOD(riakBucket, getProperty) {
+}
+
+PHP_METHOD(riakBucket, setProperty) {
+}
+
+PHP_METHOD(riakBucket, setProperties) {
+}
+
+PHP_METHOD(riakBucket, getProperties) {
+}
+
+PHP_METHOD(riakBucket, getKeys) {
+}
+
+
+
+
+
+
+
+
+
+
+
