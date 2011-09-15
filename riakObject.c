@@ -100,10 +100,7 @@ static function_entry riakObject_methods[] = {
     PHP_ME(riakObject, getSiblingCount, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(riakObject, getSibling, arginfo_riakObject_getSibling, ZEND_ACC_PUBLIC)  
     PHP_ME(riakObject, getSiblings, arginfo_riakObject_getSiblings, ZEND_ACC_PUBLIC)
-    
-    PHP_ME(riakObject, populate, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(riakObject, populateLinks, NULL, ZEND_ACC_PROTECTED)
-    
+        
     PHP_ME(riakObject, add, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(riakObject, link, NULL, ZEND_ACC_PUBLIC)   
     
