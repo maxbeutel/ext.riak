@@ -286,6 +286,7 @@ PHP_METHOD(riakClient, isAlive) {
         zend_error(E_ERROR, "Memory allocation failed");
     }
     
+    /* build client id header */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
@@ -362,16 +363,16 @@ PHP_METHOD(riakClient, buckets) {
         zend_error(E_ERROR, "Memory allocation failed");
     }
          
+    /* build client id header */
+    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
         zend_error(E_ERROR, "Memory allocation failed");
     }
     
     curl = curl_easy_init();
     
-    if (curl) {
-        /* build client id header */
-        client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
-        
+    if (curl) {        
         /* exec request */
         riak_curl_response_init(&response);
         
