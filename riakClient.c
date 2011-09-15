@@ -8,6 +8,7 @@
 #include <curl/easy.h>
 
 #include "riak_shared.h"
+#include "riak_curl.h"
 #include "riakClient.h"
 #include "riakBucket.h"
 
@@ -235,7 +236,7 @@ PHP_METHOD(riakClient, getClientId) {
 
 
 
-
+/*
 struct riak_curl_response {
     char *response_body;
     size_t len;
@@ -257,17 +258,16 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct riak_curl_response
     
     return size * nmemb;
 }
-
+*/
 
 
 
 PHP_METHOD(riakClient, isAlive) {
-    /* TODO: put curl stuff in helper functions */
     CURL *curl;
     CURLcode res;
     
     struct curl_slist *headers = NULL;
-    struct riak_curl_response response;
+    riakCurlResponse response;
     
     char *status_ok = "OK";
     char *ping_url;
@@ -302,7 +302,7 @@ PHP_METHOD(riakClient, isAlive) {
         
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
         curl_easy_setopt(curl, CURLOPT_URL, ping_url);        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
         
         res = curl_easy_perform(curl);
@@ -343,7 +343,7 @@ PHP_METHOD(riakClient, buckets) {
     CURLcode res;
     
     struct curl_slist *headers = NULL;
-    struct riak_curl_response response;
+    riakCurlResponse response;
     
     char *host;
     char *client_id;
@@ -379,7 +379,7 @@ PHP_METHOD(riakClient, buckets) {
         
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
         curl_easy_setopt(curl, CURLOPT_URL, bucket_list_url);        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
         
         res = curl_easy_perform(curl);
