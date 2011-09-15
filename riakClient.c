@@ -234,34 +234,6 @@ PHP_METHOD(riakClient, getClientId) {
     zval_copy_ctor(return_value);
 }
 
-
-
-/*
-struct riak_curl_response {
-    char *response_body;
-    size_t len;
-};
-
-void riak_curl_response_init(struct riak_curl_response *s) {
-    s->len = 0;
-    s->response_body = emalloc(s->len + 1);
-    s->response_body[0] = '\0';
-}
-
-size_t writefunc(void *ptr, size_t size, size_t nmemb, struct riak_curl_response *s) {
-    size_t new_len = s->len + size * nmemb;
-    s->response_body = erealloc(s->response_body, new_len + 1);
-    
-    memcpy(s->response_body + s->len, ptr, size*nmemb);
-    s->response_body[new_len] = '\0';
-    s->len = new_len;
-    
-    return size * nmemb;
-}
-*/
-
-
-
 PHP_METHOD(riakClient, isAlive) {
     CURL *curl;
     CURLcode res;
@@ -339,7 +311,6 @@ PHP_METHOD(riakClient, bucket) {
 }
 
 PHP_METHOD(riakClient, buckets) {
-    /* TODO: put curl stuff in helper functions */
     CURL *curl;
     CURLcode res;
     
@@ -416,7 +387,6 @@ PHP_METHOD(riakClient, buckets) {
                         MAKE_STD_ZVAL(bucket_instance);
                         
                         object_init_ex(bucket_instance, riak_ce_riakBucket);
-                        
                         CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &Z_STRVAL_PP(data));
                         
                         add_next_index_zval(return_value, bucket_instance);
