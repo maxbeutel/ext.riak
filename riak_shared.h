@@ -8,6 +8,13 @@
 #   define RIAK_ARG_INFO static
 #endif
 
+
+/* common helper macros */
+#define RIAK_RETURN_SELF() \
+    zval *_current_instance = getThis(); \
+    RETURN_ZVAL(_current_instance, 1, 0); 
+
+    
 /* macros for returning object properties */
 #define RIAK_CALL_SIMPLE_GETTER(property_name, property_name_len) \
     zval *data; \

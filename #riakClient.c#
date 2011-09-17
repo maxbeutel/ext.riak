@@ -197,7 +197,7 @@ PHP_METHOD(riakClient, setDW) {
     
     zend_update_property_long(riak_ce_riakClient, getThis(), RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, dw TSRMLS_CC);
     
-    RIAK_RETURN_SELF(); 
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakClient, getClientId) {
