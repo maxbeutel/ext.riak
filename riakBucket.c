@@ -1,8 +1,11 @@
 #include <php.h>
 
+#include "ext/standard/php_smart_str.h"
+
 #include "riak_shared.h"
 #include "riakClient.h"
 #include "riakBucket.h"
+#include "riakObject.h"
 
 
 RIAK_ARG_INFO
@@ -91,7 +94,7 @@ static function_entry riakBucket_methods[] = {
     PHP_ME(riakBucket, setW, arginfo_riakBucket_setW, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, getDW, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, setDW, arginfo_riakBucket_setDW, ZEND_ACC_PUBLIC)
-    PHP_ME(riakBucket, newObject, arginfo_riakBucket_newObject, ZEND_ACC_PUBLIC)
+    PHP_ME(riakBucket, newObject, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, newBinary, arginfo_riakBucket_newBinary, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, get, arginfo_riakBucket_get, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, getBinary, arginfo_riakBucket_getBinary, ZEND_ACC_PUBLIC)
@@ -225,16 +228,63 @@ PHP_METHOD(riakBucket, setDW) {
 }
 
 PHP_METHOD(riakBucket, newObject) {
-    char *key;
-    int key_len;
+    zval *content_type;
     
+    zval *key;
     zval *data;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &key, &key_len, &data) == FAILURE) {
+    zval *json_data, *client_instance;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &data) == FAILURE) {
         return;
     }
     
-    RETURN_NULL();
+    /* encode data as json string */
+    smart_str buf = {0};
+    
+    php_json_encode(&buf, data, 0 TSRMLS_CC);
+    
+    MAKE_STD_ZVAL(json_data);
+    ZVAL_STRINGL(json_data, buf.c, buf.len, 1);
+    
+    smart_str_free(&buf);
+    
+    /* set up client instance and return it */
+    
+    MAKE_STD_ZVAL(content_type);
+    ZVAL_STRING(content_type, "text/json", 1);
+    
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+    
+    object_init_ex(return_value, riak_ce_riakObject);
+    CALL_METHOD3(riakObject, __construct, return_value, return_value, client_instance, getThis(), &key);
+    CALL_METHOD1(riakObject, setData, NULL, return_value, &json_data);
+    CALL_METHOD1(riakObject, setContentType, NULL, return_value, &content_type);
+    
+    zval_ptr_dtor(&content_type);
+    zval_ptr_dtor(&json_data);
+    
+    
+    /*
+
+    */
+    
+ /*   
+    //zval *bucket_instance;
+    //MAKE_STD_ZVAL(bucket_instance);
+    
+    //#define CALL_METHOD3(classname, name, retval, thisptr, param1, param2, param3)
+    //return_value
+ */
+
+
+/*
+$obj->setData($data);
+    $obj->setContentType($content_type);
+    $obj->jsonize = FALSE;    
+*/
+    
+    
 }
 
 PHP_METHOD(riakBucket, newBinary) {
