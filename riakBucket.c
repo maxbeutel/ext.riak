@@ -157,6 +157,15 @@ PHP_METHOD(riakBucket, getR) {
 }
 
 PHP_METHOD(riakBucket, setR) {
+    long r;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &r) == FAILURE) {
+        return;
+    }
+    
+    zend_update_property_long(riak_ce_riakBucket, getThis(), RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, r TSRMLS_CC);
+    
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakBucket, getW) {
@@ -175,7 +184,16 @@ PHP_METHOD(riakBucket, getW) {
     }
 }
 
-PHP_METHOD(riakBucket, setW) {    
+PHP_METHOD(riakBucket, setW) {  
+    long w;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &w) == FAILURE) {
+        return;
+    }
+    
+    zend_update_property_long(riak_ce_riakBucket, getThis(), RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, w TSRMLS_CC);
+    
+    RIAK_RETURN_SELF();    
 }
 
 PHP_METHOD(riakBucket, getDW) {
@@ -195,6 +213,15 @@ PHP_METHOD(riakBucket, getDW) {
 }
 
 PHP_METHOD(riakBucket, setDW) {
+    long dw;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &dw) == FAILURE) {
+        return;
+    }
+    
+    zend_update_property_long(riak_ce_riakBucket, getThis(), RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, dw TSRMLS_CC);
+    
+    RIAK_RETURN_SELF(); 
 }
 
 PHP_METHOD(riakBucket, newObject) {
