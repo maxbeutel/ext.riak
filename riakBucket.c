@@ -137,13 +137,7 @@ PHP_METHOD(riakBucket, __construct) {
 }
 
 PHP_METHOD(riakBucket, getName) {
-    zval *data;
-    
-    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
-
-    *return_value = *data;
-
-    zval_copy_ctor(return_value);
+    RIAK_CALL_SIMPLE_GETTER(RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN);
 }
 
 PHP_METHOD(riakBucket, getR) {

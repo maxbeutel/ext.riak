@@ -151,13 +151,7 @@ PHP_METHOD(riakClient, __construct) {
 
 
 PHP_METHOD(riakClient, getR) {
-    zval *data;
-    
-    data = zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC);
-
-    *return_value = *data;
-
-    zval_copy_ctor(return_value);
+    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_R, RIAK_CLIENT_R_LEN);
 }
 
 PHP_METHOD(riakClient, setR) {
@@ -176,13 +170,7 @@ PHP_METHOD(riakClient, setR) {
 
 
 PHP_METHOD(riakClient, getW) {
-    zval *data;
-
-    data = zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, 0 TSRMLS_CC);
-
-    *return_value = *data;
-
-    zval_copy_ctor(return_value);
+    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_W, RIAK_CLIENT_W_LEN);
 }
 
 PHP_METHOD(riakClient, setW) {
@@ -201,13 +189,7 @@ PHP_METHOD(riakClient, setW) {
 
 
 PHP_METHOD(riakClient, getDW) {
-    zval *data;
-
-    data = zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, 0 TSRMLS_CC);
-
-    *return_value = *data;
-
-    zval_copy_ctor(return_value);
+    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN);
 }
 
 PHP_METHOD(riakClient, setDW) {
@@ -225,13 +207,7 @@ PHP_METHOD(riakClient, setDW) {
 }
 
 PHP_METHOD(riakClient, getClientId) {
-    zval *data;
-
-    data = zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC);
-
-    *return_value = *data;
-
-    zval_copy_ctor(return_value);
+    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN);
 }
 
 PHP_METHOD(riakClient, isAlive) {
