@@ -137,21 +137,67 @@ PHP_METHOD(riakBucket, __construct) {
 }
 
 PHP_METHOD(riakBucket, getName) {
+    zval *data;
+    
+    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
+
+    *return_value = *data;
+
+    zval_copy_ctor(return_value);
 }
 
 PHP_METHOD(riakBucket, getR) {
+    zval *data, *client_instance;
+    
+    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC);
+
+    if (Z_TYPE_P(data) == IS_NULL) {
+        client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+        
+        CALL_METHOD(riakClient, getR, return_value, client_instance);
+    } else {
+        *return_value = *data;
+    
+        zval_copy_ctor(return_value); 
+    }
 }
 
 PHP_METHOD(riakBucket, setR) {
 }
 
 PHP_METHOD(riakBucket, getW) {
+    zval *data, *client_instance;
+    
+    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, 0 TSRMLS_CC);
+
+    if (Z_TYPE_P(data) == IS_NULL) {
+        client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+        
+        CALL_METHOD(riakClient, getW, return_value, client_instance);
+    } else {
+        *return_value = *data;
+    
+        zval_copy_ctor(return_value); 
+    }
 }
 
-PHP_METHOD(riakBucket, setW) {
+PHP_METHOD(riakBucket, setW) {    
 }
 
 PHP_METHOD(riakBucket, getDW) {
+    zval *data, *client_instance;
+    
+    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, 0 TSRMLS_CC);
+
+    if (Z_TYPE_P(data) == IS_NULL) {
+        client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+        
+        CALL_METHOD(riakClient, getDW, return_value, client_instance);
+    } else {
+        *return_value = *data;
+    
+        zval_copy_ctor(return_value); 
+    }
 }
 
 PHP_METHOD(riakBucket, setDW) {
