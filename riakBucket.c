@@ -1,7 +1,5 @@
 #include <php.h>
 
-#include "ext/standard/php_smart_str.h"
-
 #include "riak_shared.h"
 #include "riakClient.h"
 #include "riakBucket.h"
@@ -230,36 +228,49 @@ PHP_METHOD(riakBucket, setDW) {
 
 PHP_METHOD(riakBucket, newObject) {
     zval *key;
-    zval *data;
+    zval *data, *data_arg;
     zval *content_type;
     
-    zval *json_data, *client_instance;
+    zval *client_instance;
     
-    int use_json_encoding = 0;
-
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|zz", &key, &data, &content_type) == FAILURE) {
         return;
     }
         
-    /* set user supplied or default content type */    
-    if (Z_TYPE_P(content_type) == IS_NULL) {
-        MAKE_STD_ZVAL(content_type);
-        ZVAL_STRING(content_type, "text/json", 1);
-        
-        php_printf("using text/json\n");
-        
-        use_json_encoding = 1;
-    } else {
-        php_printf("using user supplied ctype\n");
-        php_printf("%s\n", Z_STRVAL_P(content_type));
-    }
-
-    /* set up client instance and return it */    
+    /* set up object instance and return it */    
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
     
     object_init_ex(return_value, riak_ce_riakObject);
-    CALL_METHOD3(riakObject, __construct, return_value, return_value, client_instance, getThis(), &key);
+    CALL_METHOD3(riakObject, __construct, return_value, return_value, client_instance, getThis(), &Z_STRVAL_P(key));
     
+    if (Z_TYPE_P(content_type) == IS_STRING) {
+        php_printf("using user supplied ctype %s\n", Z_STRVAL_P(content_type));
+        
+        CALL_METHOD1(riakObject, setContentType, return_value, return_value, &Z_STRVAL_P(content_type)); 
+    } else {
+        MAKE_STD_ZVAL(content_type);
+        ZVAL_STRING(content_type, "text/json", 1);
+        
+        php_printf("using default ctype text/json\n");
+        
+        CALL_METHOD1(riakObject, setContentType, return_value, return_value, &Z_STRVAL_P(content_type));
+        
+        zval_ptr_dtor(&content_type);
+    }
+    
+    if (Z_TYPE_P(data) != IS_NULL) {
+        php_printf("setting data\n");
+        
+        //*data_arg = *data;
+        //zval_copy_ctor(data_arg);
+        
+        CALL_METHOD1(riakObject, setData, return_value, return_value, data);
+    }
+
+    //    
+    
+    /* dont encode data here! */
+    /*
     if (use_json_encoding) {
         smart_str buf = {0};
         
@@ -270,16 +281,17 @@ PHP_METHOD(riakBucket, newObject) {
         
         smart_str_free(&buf);
         
-        CALL_METHOD1(riakObject, setData, NULL, return_value, &json_data);
+        CALL_METHOD1(riakObject, setData, NULL, return_value, &Z_STRVAL_P(json_data));
     } else {
-        CALL_METHOD1(riakObject, setData, NULL, return_value, &data);
+        CALL_METHOD1(riakObject, setData, NULL, return_value, &Z_STRVAL_P(data));
     }
+    */
     
-    CALL_METHOD1(riakObject, setContentType, NULL, return_value, &content_type);
+    
     
     /* @TODO think about that if this is still needed when the properties of riakObject are set with these values */
-    zval_ptr_dtor(&content_type);
-    zval_ptr_dtor(&json_data); 
+    //
+    //zval_ptr_dtor(&json_data); 
 }
 
 PHP_METHOD(riakBucket, newBinary) {

@@ -1,5 +1,7 @@
 #include <php.h>
 
+#include "ext/standard/php_smart_str.h"
+
 #include "riak_shared.h"
 #include "riakObject.h"
 #include "riakClient.h"
@@ -126,9 +128,41 @@ void riak_init_riakObject(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC); 
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_bool(riak_ce_riakObject, RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN, 0, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
 }
 
 PHP_METHOD(riakObject, __construct) {
+    php_printf("riakObject::construct called\n");
+    
+    zval *client;
+    zval *bucket;
+
+    char *key;
+    int key_len;
+
+    zval *headers, *links;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos", &client, &bucket, &key, &key_len) == FAILURE) {
+        return;
+    }
+
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, client TSRMLS_CC);
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, bucket TSRMLS_CC);
+    zend_update_property_stringl(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, key, key_len TSRMLS_CC);
+    
+    MAKE_STD_ZVAL(headers);
+    array_init(headers);
+    
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, headers TSRMLS_CC);
+    
+    zval_ptr_dtor(&headers);
+    
+    MAKE_STD_ZVAL(links);
+    array_init(links);
+    
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, links TSRMLS_CC);
+    
+    zval_ptr_dtor(&links);
 }
 
 PHP_METHOD(riakObject, getBucket) {
@@ -141,6 +175,15 @@ PHP_METHOD(riakObject, getData) {
 }
 
 PHP_METHOD(riakObject, setData) {
+    zval *data;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &data) == FAILURE) {
+        return;
+    }
+    
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, data TSRMLS_CC);
+    
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakObject, status) {
@@ -153,6 +196,19 @@ PHP_METHOD(riakObject, getContentType) {
 }
 
 PHP_METHOD(riakObject, setContentType) {
+    char *content_type;
+    int content_type_len;
+    
+    zval *headers;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &content_type, &content_type_len) == FAILURE) {
+        return;
+    }
+    
+    headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
+    add_assoc_stringl(headers, "content-type", content_type, content_type_len, 1):
+    
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakObject, addLink) {

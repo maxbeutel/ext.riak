@@ -26,6 +26,9 @@
 #define RIAK_OBJECT_EXISTS "exists"
 #define RIAK_OBJECT_EXISTS_LEN strlen(RIAK_OBJECT_EXISTS)
 
+#define RIAK_OBJECT_DATA "data"
+#define RIAK_OBJECT_DATA_LEN strlen(RIAK_OBJECT_DATA)
+
 zend_class_entry *riak_ce_riakObject;
 
 PHP_METHOD(riakObject, __construct);
