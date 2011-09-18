@@ -39,6 +39,8 @@ PHP_METHOD(riakClient, setW);
 PHP_METHOD(riakClient, getDW);
 PHP_METHOD(riakClient, setDW);
 
+PHP_METHOD(riakClient, getBaseAddress);
+
 PHP_METHOD(riakClient, getClientId);
 
 PHP_METHOD(riakClient, isAlive);

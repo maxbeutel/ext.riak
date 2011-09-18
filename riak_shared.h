@@ -16,9 +16,9 @@
 
     
 /* macros for returning object properties */
-#define RIAK_CALL_SIMPLE_GETTER(property_name, property_name_len) \
+#define RIAK_CALL_SIMPLE_GETTER(classname, property_name, property_name_len) \
     zval *data; \
-    data = zend_read_property(riak_ce_riakBucket, getThis(), property_name, property_name_len, 0 TSRMLS_CC); \
+    data = zend_read_property(classname, getThis(), property_name, property_name_len, 0 TSRMLS_CC); \
     *return_value = *data; \
     zval_copy_ctor(return_value); 
 

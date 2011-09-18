@@ -1,6 +1,14 @@
 #include <php.h>
 
+#include <ext/spl/php_spl.h>
+#include <ext/json/php_json.h>
+
+#include <curl/curl.h>
+#include <curl/types.h>
+#include <curl/easy.h>
+
 #include "riak_shared.h"
+#include "riak_curl.h"
 #include "riakClient.h"
 #include "riakBucket.h"
 #include "riakObject.h"
@@ -139,7 +147,7 @@ PHP_METHOD(riakBucket, __construct) {
 }
 
 PHP_METHOD(riakBucket, getName) {
-    RIAK_CALL_SIMPLE_GETTER(RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN);
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakBucket, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN);
 }
 
 PHP_METHOD(riakBucket, getR) {
@@ -320,6 +328,8 @@ PHP_METHOD(riakBucket, getNVal) {
 }
 
 PHP_METHOD(riakBucket, setNVal) {
+    
+    //return $this->setProperty("n_val", $nval);
 }
 
 PHP_METHOD(riakBucket, setAllowMultiples) {
@@ -341,15 +351,115 @@ PHP_METHOD(riakBucket, getProperties) {
 }
 
 PHP_METHOD(riakBucket, getKeys) {
+    CURL *curl;
+    CURLcode res;
+    
+    struct curl_slist *headers = NULL;
+    riakCurlResponse response;
+    
+    zval *base_address;
+    char *bucket_keys_url;
+    
+    zval *client_id;
+    char *client_id_header;
+    
+    zval *client_instance;
+    
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+    
+    /* build keys url */
+    MAKE_STD_ZVAL(base_address);
+    CALL_METHOD(riakClient, getBaseAddress, base_address, client_instance);
+
+    if (asprintf(&bucket_keys_url, "%s/test?keys=true&props=false", Z_STRVAL_P(base_address)) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
+    
+    php_printf("keys url: %s\n", bucket_keys_url);
+    
+    /* build client id header */
+    MAKE_STD_ZVAL(client_id);
+    CALL_METHOD(riakClient, getClientId, client_id, client_instance);
+    
+    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", Z_STRVAL_P(client_id)) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
+    
+    php_printf("client id header: %s\n", client_id_header);
+    
+    curl = curl_easy_init();
+    
+    if (curl) {
+        // exec request 
+        riak_curl_response_init(&response);
+        
+        headers = curl_slist_append(headers, client_id_header);
+        
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+        curl_easy_setopt(curl, CURLOPT_URL, bucket_keys_url);        
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        
+        res = curl_easy_perform(curl);
+        
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+
+        php_printf("response: %s\n", response.response_body);
+
+        array_init(return_value);
+        
+        if (response.len > 0) {
+            /* decode json string */
+            zval *keys;
+            MAKE_STD_ZVAL(keys);
+            php_json_decode(keys, response.response_body, response.len, 1, 20 TSRMLS_CC);
+            
+            /* search "keys" key */
+            zval **key_names_array;
+            
+            HashTable *keys_hash = NULL;
+            keys_hash = Z_ARRVAL_P(keys);
+ 
+            /* iterate over key names, add them to array */
+            if (zend_hash_find(keys_hash, "keys", sizeof("keys"), (void**) &key_names_array) == SUCCESS) {
+                zval *arr, **data;
+                HashTable *arr_hash;
+                HashPosition pointer;
+    
+                arr_hash = Z_ARRVAL_PP(key_names_array);
+    
+                for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
+                    if (Z_TYPE_PP(data) == IS_STRING) {
+                        /* @TODO maybe this could be cleaned up a bit */
+                        char *key_name;
+                        int key_name_len;
+                        
+                        char *key_name_decoded;
+                        int key_name_decoded_len;
+                        
+                        key_name = Z_STRVAL_PP(data);
+                        key_name_len = Z_STRLEN_PP(data);
+                        
+                        key_name_decoded = estrndup(key_name, key_name_len);
+                        key_name_decoded_len = php_url_decode(key_name_decoded, key_name_len);
+
+                        php_printf("-> found key: %s\n", key_name_decoded);
+                        
+                        add_next_index_stringl(return_value, key_name_decoded, key_name_decoded_len, 0);
+                    }
+                }
+            }
+
+            zval_ptr_dtor(&keys);
+        }
+        
+        efree(response.response_body);
+    }
+    
+    zval_ptr_dtor(&base_address); 
+    free(bucket_keys_url);
+    zval_ptr_dtor(&client_id); 
+    free(client_id_header);    
 }
-
-
-
-
-
-
-
-
-
-
 

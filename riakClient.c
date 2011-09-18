@@ -61,6 +61,8 @@ static function_entry riakClient_methods[] = {
     PHP_ME(riakClient, getDW, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(riakClient, setDW, arginfo_riakClient_setDW, ZEND_ACC_PUBLIC)
     
+    PHP_ME(riakClient, getBaseAddress, NULL, ZEND_ACC_PUBLIC)
+    
     PHP_ME(riakClient, getClientId, NULL, ZEND_ACC_PUBLIC)
 
     PHP_ME(riakClient, isAlive, NULL, ZEND_ACC_PUBLIC)
@@ -151,7 +153,7 @@ PHP_METHOD(riakClient, __construct) {
 
 
 PHP_METHOD(riakClient, getR) {
-    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_R, RIAK_CLIENT_R_LEN);
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakClient, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN);
 }
 
 PHP_METHOD(riakClient, setR) {
@@ -168,7 +170,7 @@ PHP_METHOD(riakClient, setR) {
 
 
 PHP_METHOD(riakClient, getW) {
-    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_W, RIAK_CLIENT_W_LEN);
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakClient, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN);
 }
 
 PHP_METHOD(riakClient, setW) {
@@ -185,7 +187,7 @@ PHP_METHOD(riakClient, setW) {
 
 
 PHP_METHOD(riakClient, getDW) {
-    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN);
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakClient, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN);
 }
 
 PHP_METHOD(riakClient, setDW) {
@@ -201,7 +203,27 @@ PHP_METHOD(riakClient, setDW) {
 }
 
 PHP_METHOD(riakClient, getClientId) {
-    RIAK_CALL_SIMPLE_GETTER(RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN);
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakClient, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN);
+}
+
+PHP_METHOD(riakClient, getBaseAddress) {
+    char *host;
+    long port;
+    char *prefix;
+    
+    char *base_address;
+    
+    host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
+    port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
+    prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
+    
+    if (asprintf(&base_address, "%s:%ld/%s", host, port, prefix) < 0) {
+        zend_error(E_ERROR, "Memory allocation failed");
+    }
+    
+    RETURN_STRING(base_address, 1);
+
+    free(base_address);
 }
 
 PHP_METHOD(riakClient, isAlive) {
@@ -224,6 +246,7 @@ PHP_METHOD(riakClient, isAlive) {
     host = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, 0 TSRMLS_CC));
     port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
     
+    /* @TODO use getBaseAddress */
     if (asprintf(&ping_url, "%s:%ld/ping", host, port) < 0) {
         zend_error(E_ERROR, "Memory allocation failed");
     }
@@ -255,6 +278,7 @@ PHP_METHOD(riakClient, isAlive) {
         
         comparision_res = strcmp(status_ok, response.response_body);
         
+        /* @TODO strings wont get freed if curl fails! */
         efree(response.response_body);
         free(ping_url);
         free(client_id_header);
@@ -299,7 +323,7 @@ PHP_METHOD(riakClient, buckets) {
     port = Z_LVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, 0 TSRMLS_CC));
     prefix = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, 0 TSRMLS_CC));
 
-    
+    /* @TODO use getBaseAddress */
     if (asprintf(&bucket_list_url, "%s:%ld/%s?buckets=true", host, port, prefix) < 0) {
         zend_error(E_ERROR, "Memory allocation failed");
     }
@@ -329,9 +353,9 @@ PHP_METHOD(riakClient, buckets) {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
                 
+        array_init(return_value);
+        
         if (response.len > 0) {
-            array_init(return_value);
-            
             /* decode json string */
             zval *buckets;
             MAKE_STD_ZVAL(buckets);
@@ -365,10 +389,9 @@ PHP_METHOD(riakClient, buckets) {
             }
 
             zval_ptr_dtor(&buckets);
-        } else {
-            array_init(return_value);
-        }
+        } 
         
+        /* @TODO strings wont get freed if curl fails! */
         free(bucket_list_url);
         free(client_id_header);
         efree(response.response_body);
