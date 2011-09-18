@@ -206,7 +206,7 @@ PHP_METHOD(riakObject, setContentType) {
     }
     
     headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
-    add_assoc_stringl(headers, "content-type", content_type, content_type_len, 1):
+    add_assoc_stringl(headers, "content-type", content_type, content_type_len, 1);
     
     RIAK_RETURN_SELF();
 }
