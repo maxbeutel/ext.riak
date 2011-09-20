@@ -350,20 +350,22 @@ PHP_METHOD(riakClient, buckets) {
     struct curl_slist *headers = NULL;
     riakCurlResponse response;
     
-    char *bucket_list_url;
-    char *base_address;
+    char *base_address = NULL;
+    char *bucket_list_url = NULL;
+    char *client_id_header = NULL;
     
-    char *client_id;    
-    char *client_id_header;
-    
+    char *client_id; 
+
 
     /* build buckets url */
     if (riak_client_base_address(getThis(), 1, &base_address TSRMLS_CC) == FAILURE) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
 
     if (asprintf(&bucket_list_url, "%s/?buckets=true", base_address) < 0) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
          
     /* build client id header */
@@ -371,6 +373,7 @@ PHP_METHOD(riakClient, buckets) {
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
     
     curl = curl_easy_init();
@@ -431,10 +434,22 @@ PHP_METHOD(riakClient, buckets) {
         
         efree(response.response_body);
     }
+             
     
-    free(base_address);
-    free(bucket_list_url);
-    free(client_id_header);
+    cleanup:
+    
+    if (base_address) {
+        free(base_address);
+    }
+    
+    if (bucket_list_url) {
+        free(bucket_list_url);
+    }
+    
+    if (client_id_header) {
+        free(client_id_header);
+    }
+
     
     if (!curl) {
         zend_error(E_WARNING, "Could not initialize request");
