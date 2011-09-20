@@ -269,14 +269,9 @@ PHP_METHOD(riakBucket, newObject) {
     if (Z_TYPE_P(data) != IS_NULL) {
         php_printf("setting data\n");
         
-        //*data_arg = *data;
-        //zval_copy_ctor(data_arg);
-        
         CALL_METHOD1(riakObject, setData, return_value, return_value, data);
     }
 
-    //    
-    
     /* dont encode data here! */
     /*
     if (use_json_encoding) {
@@ -294,12 +289,6 @@ PHP_METHOD(riakBucket, newObject) {
         CALL_METHOD1(riakObject, setData, NULL, return_value, &Z_STRVAL_P(data));
     }
     */
-    
-    
-    
-    /* @TODO think about that if this is still needed when the properties of riakObject are set with these values */
-    //
-    //zval_ptr_dtor(&json_data); 
 }
 
 PHP_METHOD(riakBucket, newBinary) {
@@ -328,8 +317,6 @@ PHP_METHOD(riakBucket, getNVal) {
 }
 
 PHP_METHOD(riakBucket, setNVal) {
-    
-    //return $this->setProperty("n_val", $nval);
 }
 
 PHP_METHOD(riakBucket, setAllowMultiples) {
@@ -357,40 +344,39 @@ PHP_METHOD(riakBucket, getKeys) {
     struct curl_slist *headers = NULL;
     riakCurlResponse response;
     
-    zval *base_address;
+    char *base_address;
     char *bucket_keys_url;
     
     zval *client_id;
     char *client_id_header;
     
     zval *client_instance;
+    zval *bucket_name;
     
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+    bucket_name = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
     
     /* build keys url */
-    MAKE_STD_ZVAL(base_address);
-    CALL_METHOD(riakClient, getBaseAddress, base_address, client_instance);
-
-    if (asprintf(&bucket_keys_url, "%s/test?keys=true&props=false", Z_STRVAL_P(base_address)) < 0) {
-        zend_error(E_ERROR, "Memory allocation failed");
+    if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
+        RIAK_MALLOC_WARNING();
     }
-    
-    php_printf("keys url: %s\n", bucket_keys_url);
-    
+
+    if (asprintf(&bucket_keys_url, "%s/%s?keys=true&props=false", base_address, Z_STRVAL_P(bucket_name)) < 0) {
+        RIAK_MALLOC_WARNING();
+    }
+        
     /* build client id header */
     MAKE_STD_ZVAL(client_id);
     CALL_METHOD(riakClient, getClientId, client_id, client_instance);
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", Z_STRVAL_P(client_id)) < 0) {
-        zend_error(E_ERROR, "Memory allocation failed");
+        RIAK_MALLOC_WARNING();
     }
-    
-    php_printf("client id header: %s\n", client_id_header);
     
     curl = curl_easy_init();
     
     if (curl) {
-        // exec request 
+        /* exec request */
         riak_curl_response_init(&response);
         
         headers = curl_slist_append(headers, client_id_header);
@@ -404,8 +390,6 @@ PHP_METHOD(riakBucket, getKeys) {
         
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
-
-        php_printf("response: %s\n", response.response_body);
 
         array_init(return_value);
         
@@ -444,8 +428,6 @@ PHP_METHOD(riakBucket, getKeys) {
                         key_name_decoded = estrndup(key_name, key_name_len);
                         key_name_decoded_len = php_url_decode(key_name_decoded, key_name_len);
 
-                        php_printf("-> found key: %s\n", key_name_decoded);
-                        
                         add_next_index_stringl(return_value, key_name_decoded, key_name_decoded_len, 0);
                     }
                 }
@@ -457,9 +439,10 @@ PHP_METHOD(riakBucket, getKeys) {
         efree(response.response_body);
     }
     
-    zval_ptr_dtor(&base_address); 
+    free(base_address); 
     free(bucket_keys_url);
+    free(client_id_header); 
     zval_ptr_dtor(&client_id); 
-    free(client_id_header);    
+    zval_ptr_dtor(&bucket_name);  
 }
 
