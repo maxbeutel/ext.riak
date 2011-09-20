@@ -249,22 +249,24 @@ PHP_METHOD(riakClient, isAlive) {
     riakCurlResponse response;
     
     char *status_ok = "OK";
-    char *ping_url;
-    
-    char *base_address;
     
     char *client_id;
-    char *client_id_header;
+    
+    char *base_address = NULL;
+    char *ping_url = NULL;
+    char *client_id_header = NULL;
     
     int comparision_res;
     
     /* build ping url */
     if (riak_client_base_address(getThis(), 0, &base_address TSRMLS_CC) == FAILURE) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
     
     if (asprintf(&ping_url, "%s/ping", base_address) < 0) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
     
     /* build client id header */
@@ -272,6 +274,7 @@ PHP_METHOD(riakClient, isAlive) {
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
     
     curl = curl_easy_init();
@@ -297,13 +300,29 @@ PHP_METHOD(riakClient, isAlive) {
         efree(response.response_body);  
     }
     
-    free(base_address);
-    free(ping_url);
-    free(client_id_header);    
+    
+    cleanup:
+    
+    if (base_address) {
+        free(base_address);
+        printf("freeing 1\n");
+    }
+    
+    if (ping_url) {
+        free(ping_url);
+        printf("freeing 2\n");
+    }
+    
+    if (client_id_header) {
+        free(client_id_header);
+        printf("freeing 3\n");
+    }    
+    
     
     if (!curl) {
         zend_error(E_WARNING, "Could not initialize request");
     }
+    
     
     if (comparision_res == 0) {
         RETURN_TRUE;
