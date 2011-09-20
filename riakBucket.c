@@ -455,6 +455,7 @@ PHP_METHOD(riakBucket, getKeys) {
         free(client_id_header); 
     }
     
+    /* @TODO is there a better way for checking if a zval was initialized? */
     if (Z_TYPE_P(client_id) != 101) {
         zval_ptr_dtor(&client_id); 
     }
