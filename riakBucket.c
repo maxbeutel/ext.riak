@@ -352,6 +352,9 @@ PHP_METHOD(riakBucket, getKeys) {
     zval *client_instance;
     zval *bucket_name;
     
+    MAKE_STD_ZVAL(client_id);
+    
+    
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_name = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
     
@@ -367,7 +370,7 @@ PHP_METHOD(riakBucket, getKeys) {
     }
         
     /* build client id header */
-    MAKE_STD_ZVAL(client_id);
+    
     CALL_METHOD(riakClient, getClientId, client_id, client_instance);
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", Z_STRVAL_P(client_id)) < 0) {
@@ -455,13 +458,8 @@ PHP_METHOD(riakBucket, getKeys) {
         free(client_id_header); 
     }
     
-    /* @TODO is there a better way for checking if a zval was initialized? */
-    if (Z_TYPE_P(client_id) != 101) {
-        zval_ptr_dtor(&client_id); 
-    }
+    zval_ptr_dtor(&client_id); 
     
-    if (Z_TYPE_P(bucket_name) != 101) {
-        zval_ptr_dtor(&bucket_name); 
-    }
+    /*zval_ptr_dtor(&bucket_name); */
 }
 
