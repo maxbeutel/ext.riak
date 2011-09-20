@@ -257,7 +257,7 @@ PHP_METHOD(riakClient, isAlive) {
     char *client_id_header = NULL;
     
     int comparision_res;
-    
+        
     /* build ping url */
     if (riak_client_base_address(getThis(), 0, &base_address TSRMLS_CC) == FAILURE) {
         RIAK_MALLOC_WARNING();

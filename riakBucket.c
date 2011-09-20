@@ -346,10 +346,9 @@ PHP_METHOD(riakBucket, getKeys) {
     
     char *base_address;
     char *bucket_keys_url;
-    
-    zval *client_id;
     char *client_id_header;
     
+    zval *client_id;
     zval *client_instance;
     zval *bucket_name;
     
@@ -359,10 +358,12 @@ PHP_METHOD(riakBucket, getKeys) {
     /* build keys url */
     if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
 
     if (asprintf(&bucket_keys_url, "%s/%s?keys=true&props=false", base_address, Z_STRVAL_P(bucket_name)) < 0) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
         
     /* build client id header */
@@ -371,6 +372,7 @@ PHP_METHOD(riakBucket, getKeys) {
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", Z_STRVAL_P(client_id)) < 0) {
         RIAK_MALLOC_WARNING();
+        goto cleanup;
     }
     
     curl = curl_easy_init();
@@ -439,10 +441,26 @@ PHP_METHOD(riakBucket, getKeys) {
         efree(response.response_body);
     }
     
-    free(base_address); 
-    free(bucket_keys_url);
-    free(client_id_header); 
-    zval_ptr_dtor(&client_id); 
-    zval_ptr_dtor(&bucket_name);  
+    cleanup:
+                    
+    if (base_address) {
+        free(base_address);
+    }    
+        
+    if (bucket_keys_url) {
+        free(bucket_keys_url);
+    } 
+    
+    if (client_id_header) {
+        free(client_id_header); 
+    }
+    
+    if (Z_TYPE_P(client_id) != 101) {
+        zval_ptr_dtor(&client_id); 
+    }
+    
+    if (Z_TYPE_P(bucket_name) != 101) {
+        zval_ptr_dtor(&bucket_name); 
+    }
 }
 
