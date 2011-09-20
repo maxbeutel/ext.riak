@@ -11,7 +11,7 @@
 
 /* common helper macros */
 #define RIAK_MALLOC_WARNING() \
-    zend_error(E_ERROR, "Memory allocation failed");
+    zend_error(E_WARNING, "Memory allocation failed");
 
 #define RIAK_RETURN_SELF() \
     zval *_current_instance = getThis(); \
