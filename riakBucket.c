@@ -118,7 +118,6 @@ static function_entry riakBucket_methods[] = {
     {NULL, NULL, NULL}
 };
 
-
 void riak_init_riakBucket(TSRMLS_D) {
     zend_class_entry ce;
 
@@ -131,6 +130,32 @@ void riak_init_riakBucket(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakBucket, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakBucket, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
 }
+
+
+
+void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance, zval *key, zval *content_type, zval *data, zval *return_value TSRMLS_DC) {    
+    zval *default_content_type = NULL;
+    
+    object_init_ex(return_value, riak_ce_riakObject);
+    CALL_METHOD3(riakObject, __construct, return_value, return_value, client_instance, bucket_instance, key);
+   
+    if (content_type) {
+        CALL_METHOD1(riakObject, setContentType, return_value, return_value, content_type); 
+    } else {
+        MAKE_STD_ZVAL(default_content_type);
+        ZVAL_STRING(default_content_type, "text/json", 1);
+        
+        CALL_METHOD1(riakObject, setContentType, return_value, return_value, default_content_type);
+        
+        zval_ptr_dtor(&default_content_type);
+    }
+    
+    if (Z_TYPE_P(data) != IS_NULL) {
+        CALL_METHOD1(riakObject, setData, return_value, return_value, data);
+    }    
+}
+
+
 
 PHP_METHOD(riakBucket, __construct) {    
     zval *client;
@@ -236,59 +261,17 @@ PHP_METHOD(riakBucket, setDW) {
 
 PHP_METHOD(riakBucket, newObject) {
     zval *key;
-    zval *data, *data_arg;
-    zval *content_type;
-    
+    zval *data;
+        
     zval *client_instance;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|zz", &key, &data, &content_type) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &data) == FAILURE) {
         return;
     }
-        
-    /* set up object instance and return it */    
+            
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
     
-    object_init_ex(return_value, riak_ce_riakObject);
-    CALL_METHOD3(riakObject, __construct, return_value, return_value, client_instance, getThis(), &Z_STRVAL_P(key));
-    
-    if (Z_TYPE_P(content_type) == IS_STRING) {
-        php_printf("using user supplied ctype %s\n", Z_STRVAL_P(content_type));
-        
-        CALL_METHOD1(riakObject, setContentType, return_value, return_value, &Z_STRVAL_P(content_type)); 
-    } else {
-        MAKE_STD_ZVAL(content_type);
-        ZVAL_STRING(content_type, "text/json", 1);
-        
-        php_printf("using default ctype text/json\n");
-        
-        CALL_METHOD1(riakObject, setContentType, return_value, return_value, &Z_STRVAL_P(content_type));
-        
-        zval_ptr_dtor(&content_type);
-    }
-    
-    if (Z_TYPE_P(data) != IS_NULL) {
-        php_printf("setting data\n");
-        
-        CALL_METHOD1(riakObject, setData, return_value, return_value, data);
-    }
-
-    /* dont encode data here! */
-    /*
-    if (use_json_encoding) {
-        smart_str buf = {0};
-        
-        php_json_encode(&buf, data, 0 TSRMLS_CC);
-        
-        MAKE_STD_ZVAL(json_data);
-        ZVAL_STRINGL(json_data, buf.c, buf.len, 1);
-        
-        smart_str_free(&buf);
-        
-        CALL_METHOD1(riakObject, setData, NULL, return_value, &Z_STRVAL_P(json_data));
-    } else {
-        CALL_METHOD1(riakObject, setData, NULL, return_value, &Z_STRVAL_P(data));
-    }
-    */
+    riak_bucket_create_new_object(client_instance, getThis(), key, NULL, data, return_value TSRMLS_CC);
 }
 
 PHP_METHOD(riakBucket, newBinary) {
@@ -296,15 +279,15 @@ PHP_METHOD(riakBucket, newBinary) {
     zval *data;
     zval *content_type;
     
-    zval *json_data, *client_instance;
-    
-    int use_json_encoding = 0;
+    zval *client_instance;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|zz", &key, &data, &content_type) == FAILURE) {
         return;
     }
     
-    CALL_METHOD3(riakBucket, newObject, return_value, getThis(), key, data, content_type);
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+    
+    riak_bucket_create_new_object(client_instance, getThis(), key, content_type, data, return_value TSRMLS_CC);
 }
 
 PHP_METHOD(riakBucket, get) {

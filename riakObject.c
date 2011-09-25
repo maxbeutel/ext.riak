@@ -1,5 +1,8 @@
 #include <php.h>
 
+#include <ext/spl/php_spl.h>
+#include <ext/json/php_json.h>
+
 #include "ext/standard/php_smart_str.h"
 
 #include "riak_shared.h"
@@ -145,7 +148,7 @@ PHP_METHOD(riakObject, __construct) {
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos", &client, &bucket, &key, &key_len) == FAILURE) {
         return;
     }
-
+    
     zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, client TSRMLS_CC);
     zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, bucket TSRMLS_CC);
     zend_update_property_stringl(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, key, key_len TSRMLS_CC);
@@ -221,6 +224,23 @@ PHP_METHOD(riakObject, getLinks) {
 }
 
 PHP_METHOD(riakObject, store) {
+
+    /*
+    if (use_json_encoding) {
+        smart_str buf = {0};
+        
+        php_json_encode(&buf, data, 0 TSRMLS_CC);
+        
+        MAKE_STD_ZVAL(json_data);
+        ZVAL_STRINGL(json_data, buf.c, buf.len, 1);
+        
+        smart_str_free(&buf);
+        
+        CALL_METHOD1(riakObject, setData, NULL, return_value, json_data);
+    } else {
+        CALL_METHOD1(riakObject, setData, NULL, return_value, data);
+    }
+    */
 }
 
 PHP_METHOD(riakObject, reload) {

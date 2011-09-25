@@ -334,6 +334,7 @@ PHP_METHOD(riakClient, isAlive) {
 
 PHP_METHOD(riakClient, bucket) {
     zval *name;
+    int name_len;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &name) == FAILURE) {
         return;
@@ -410,7 +411,7 @@ PHP_METHOD(riakClient, buckets) {
  
             /* iterate over bucket names, create riakBucket instances */
             if (zend_hash_find(buckets_hash, "buckets", sizeof("buckets"), (void**) &bucket_names_array) == SUCCESS) {
-                zval *arr, **data;
+                zval *arr, **data, *bucket_name;
                 HashTable *arr_hash;
                 HashPosition pointer;
     
@@ -421,8 +422,10 @@ PHP_METHOD(riakClient, buckets) {
                         zval *bucket_instance;
                         MAKE_STD_ZVAL(bucket_instance);
                         
+                        bucket_name = *data;
+                        
                         object_init_ex(bucket_instance, riak_ce_riakBucket);
-                        CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), &Z_STRVAL_PP(data));
+                        CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), bucket_name);
                         
                         add_next_index_zval(return_value, bucket_instance);
                     }
