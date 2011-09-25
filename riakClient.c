@@ -113,6 +113,7 @@ int riak_client_assign_new_client_id(zval *object TSRMLS_DC) {
         
         result = SUCCESS;
     } else {
+        RIAK_MALLOC_WARNING();
         result = FAILURE;
     }
     
@@ -136,10 +137,12 @@ int riak_client_base_address(zval *object, int add_prefix, char **base_address T
     
     if (add_prefix) {
         if (asprintf(base_address, "%s:%ld/%s", host, port, prefix) < 0) {
+            RIAK_MALLOC_WARNING();
             result = FAILURE;
         }
     } else {
         if (asprintf(base_address, "%s:%ld", host, port) < 0) {
+            RIAK_MALLOC_WARNING();
             result = FAILURE;
         }
     }
@@ -181,10 +184,8 @@ PHP_METHOD(riakClient, __construct) {
     if (mapred_prefix_len > 0) {
         zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, mapred_prefix, mapred_prefix_len TSRMLS_CC);
     }
-
-    if (riak_client_assign_new_client_id(getThis() TSRMLS_CC) == FAILURE) {
-        RIAK_MALLOC_WARNING();
-    }
+    
+    riak_client_assign_new_client_id(getThis() TSRMLS_CC);
 }
 
 PHP_METHOD(riakClient, getR) {
@@ -260,7 +261,6 @@ PHP_METHOD(riakClient, isAlive) {
         
     /* build ping url */
     if (riak_client_base_address(getThis(), 0, &base_address TSRMLS_CC) == FAILURE) {
-        RIAK_MALLOC_WARNING();
         goto cleanup;
     }
     
@@ -298,6 +298,9 @@ PHP_METHOD(riakClient, isAlive) {
         comparision_res = strcmp(status_ok, response.response_body);
         
         efree(response.response_body);  
+    } else {
+        RIAK_CURL_WARNING();
+        goto cleanup;
     }
     
     
@@ -305,23 +308,15 @@ PHP_METHOD(riakClient, isAlive) {
     
     if (base_address) {
         free(base_address);
-        printf("freeing 1\n");
     }
     
     if (ping_url) {
         free(ping_url);
-        printf("freeing 2\n");
     }
     
     if (client_id_header) {
         free(client_id_header);
-        printf("freeing 3\n");
     }    
-    
-    
-    if (!curl) {
-        zend_error(E_WARNING, "Could not initialize request");
-    }
     
     
     if (comparision_res == 0) {
@@ -329,7 +324,6 @@ PHP_METHOD(riakClient, isAlive) {
     } else {
         RETURN_FALSE;
     } 
-    
 }
 
 PHP_METHOD(riakClient, bucket) {
@@ -360,7 +354,6 @@ PHP_METHOD(riakClient, buckets) {
 
     /* build buckets url */
     if (riak_client_base_address(getThis(), 1, &base_address TSRMLS_CC) == FAILURE) {
-        RIAK_MALLOC_WARNING();
         goto cleanup;
     }
 
@@ -436,6 +429,9 @@ PHP_METHOD(riakClient, buckets) {
         } 
         
         efree(response.response_body);
+    } else {
+        RIAK_CURL_WARNING();
+        goto cleanup;
     }
              
     
@@ -451,12 +447,6 @@ PHP_METHOD(riakClient, buckets) {
     
     if (client_id_header) {
         free(client_id_header);
-    }
-
-    
-    if (!curl) {
-        zend_error(E_WARNING, "Could not initialize request");
-        RETURN_NULL();
     }
 }
 

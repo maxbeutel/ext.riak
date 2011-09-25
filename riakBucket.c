@@ -291,9 +291,29 @@ PHP_METHOD(riakBucket, newBinary) {
 }
 
 PHP_METHOD(riakBucket, get) {
+    char *key;
+    int key_len;
+    
+    long r;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &key, &key_len, &r) == FAILURE) {
+        return;
+    }
+    
+    /* TODO */
 }
 
 PHP_METHOD(riakBucket, getBinary) {
+    char *key;
+    int key_len;
+    
+    long r;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &key, &key_len, &r) == FAILURE) {
+        return;
+    }   
+    
+    /* TODO */
 }
 
 PHP_METHOD(riakBucket, getNVal) {
@@ -308,7 +328,113 @@ PHP_METHOD(riakBucket, setAllowMultiples) {
 PHP_METHOD(riakBucket, getAllowMultiples) {
 }
 
+/* TODO finish fetch properties function, use in riakBucket object getters */
+int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, **properties TSRMLS_DC)
+{
+    CURL *curl;
+    CURLcode res;
+    
+    struct curl_slist *headers = NULL;
+    riakCurlResponse response;    
+    
+    char *base_address = NULL;
+    char *bucket_properties_url = NULL;
+    
+    char *client_id = NULL;
+    
+    int result;
+    
+    /* build bucket properties url */
+    if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
+        result = FAILURE;
+        goto cleanup;
+    }
+    
+    if (asprintf(bucket_properties_url, "%s/?props=true&keys=false") < 0) {
+        RIAK_MALLOC_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+
+    /* build client id header */
+    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    
+    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
+        RIAK_MALLOC_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+    
+    curl = curl_easy_init();
+    
+    if (curl) {
+        /* exec request */
+        riak_curl_response_init(&response);
+        
+        headers = curl_slist_append(headers, client_id_header);
+        
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+        curl_easy_setopt(curl, CURLOPT_URL, bucket_properties_url);        
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        
+        res = curl_easy_perform(curl);
+        
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+        
+        php_printf("Bucket properties: %s\n", response.response_body);
+        
+        /* TODO: decode json, array_init(properties), result = SUCCESS, return */
+        
+        efree(response.response_body);  
+    } else {
+        RIAK_CURL_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+
+    
+    cleanup:
+    
+    if (base_address) {
+        free(base_address);
+    }
+    
+    if (bucket_properties_url) {
+        free(bucket_properties_url);
+    }
+    
+    if (client_id) {
+        free(client_id);
+    }
+    
+    return result;
+}
+
 PHP_METHOD(riakBucket, getProperty) {
+    char *key;
+    int key_len;
+    
+    zval *properties = NULL;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &key, &key_len) == FAILURE) {
+        return;
+    }    
+    
+    if (riak_bucket_fetch_properties(getThis(), &properties TSRMLS_CC) == FAILURE) {
+        zend_error(E_WARNING, "Could not fetch bucket properties");
+        RETURN_NULL();
+    }    
+    
+    HashTable *keys_hash = NULL;
+    keys_hash = Z_ARRVAL_P(keys);
+    
+    if (zend_hash_find(properties_hash, key, sizeof(key), (void**) &key_names_array) == SUCCESS) { /* use key_len? */
+        
+    } else {
+        RETURN_NULL();
+    }        
 }
 
 PHP_METHOD(riakBucket, setProperty) {
@@ -343,7 +469,6 @@ PHP_METHOD(riakBucket, getKeys) {
     
     /* build keys url */
     if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
-        RIAK_MALLOC_WARNING();
         goto cleanup;
     }
 
@@ -425,6 +550,9 @@ PHP_METHOD(riakBucket, getKeys) {
         }
         
         efree(response.response_body);
+    } else {
+        RIAK_CURL_WARNING();
+        goto cleanup;
     }
     
     cleanup:
