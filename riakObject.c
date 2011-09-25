@@ -167,12 +167,15 @@ PHP_METHOD(riakObject, __construct) {
 }
 
 PHP_METHOD(riakObject, getBucket) {
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakObject, RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN);
 }
 
 PHP_METHOD(riakObject, getKey) {
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakObject, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN);
 }
 
 PHP_METHOD(riakObject, getData) {
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakObject, RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN);
 }
 
 PHP_METHOD(riakObject, setData) {
@@ -191,6 +194,7 @@ PHP_METHOD(riakObject, status) {
 }
 
 PHP_METHOD(riakObject, exists) {
+    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakObject, RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN);
 }
 
 PHP_METHOD(riakObject, getContentType) {
