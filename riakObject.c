@@ -126,7 +126,7 @@ void riak_init_riakObject(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
-    zend_declare_property_bool(riak_ce_riakObject, RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 1, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_bool(riak_ce_riakObject, RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 0, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC); 
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
@@ -135,8 +135,6 @@ void riak_init_riakObject(TSRMLS_D) {
 }
 
 PHP_METHOD(riakObject, __construct) {
-    php_printf("riakObject::construct called\n");
-    
     zval *client;
     zval *bucket;
 
@@ -211,6 +209,10 @@ PHP_METHOD(riakObject, setContentType) {
     headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
     add_assoc_stringl(headers, "content-type", content_type, content_type_len, 1);
     
+    if (strcmp(content_type, "text/json") == 0) {
+        zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 1 TSRMLS_CC);
+    }
+    
     RIAK_RETURN_SELF();
 }
 
@@ -224,9 +226,20 @@ PHP_METHOD(riakObject, getLinks) {
 }
 
 PHP_METHOD(riakObject, store) {
+    zval *data;
+    zval *jsonize;
+    
+    zval *json_data;
+    
+    zend_bool encode_as_json;
 
-    /*
-    if (use_json_encoding) {
+    data = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, 0 TSRMLS_CC);
+    jsonize = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 0 TSRMLS_CC);
+    
+    encode_as_json = Z_BVAL_P(jsonize);
+    
+    /* encode as json before storing */
+    if (encode_as_json) {
         smart_str buf = {0};
         
         php_json_encode(&buf, data, 0 TSRMLS_CC);
@@ -235,12 +248,13 @@ PHP_METHOD(riakObject, store) {
         ZVAL_STRINGL(json_data, buf.c, buf.len, 1);
         
         smart_str_free(&buf);
-        
-        CALL_METHOD1(riakObject, setData, NULL, return_value, json_data);
-    } else {
-        CALL_METHOD1(riakObject, setData, NULL, return_value, data);
+                
+        zval_ptr_dtor(&json_data);
     }
-    */
+    
+    
+    
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakObject, reload) {
