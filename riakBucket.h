@@ -10,6 +10,12 @@ zend_class_entry *riak_ce_riakBucket;
 #define RIAK_BUCKET_NAME "name"
 #define RIAK_BUCKET_NAME_LEN strlen(RIAK_BUCKET_NAME)
 
+#define RIAK_BUCKET_PROP_NVAL "n_val"
+#define RIAK_BUCKET_PROP_NVAL_LEN strlen(RIAK_BUCKET_PROP_NVAL)
+
+#define RIAK_BUCKET_PROP_ALLOWMULTIPLES "allow_mult"
+#define RIAK_BUCKET_PROP_ALLOWMULTIPLES_LEN strlen(RIAK_BUCKET_PROP_ALLOWMULTIPLES)
+
 PHP_METHOD(riakBucket, __construct);
 
 PHP_METHOD(riakBucket, getName);
