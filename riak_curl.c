@@ -64,6 +64,8 @@ int riak_curl_fetch_response(char *client_id, char *request_url, char **response
         
         asprintf(response_body, "%s", response.response_body);
 
+        php_printf("JSON response: %s\n", response.response_body);
+        
         efree(response.response_body);  
         
         result = SUCCESS;
