@@ -231,6 +231,8 @@ int riak_bucket_fetch_property(char *key, int key_len, zval *client_instance, zv
             result = SUCCESS;
                         
             zval_ptr_dtor(property);
+        } else {
+            result = FAILURE;
         }
     } else {
         result = FAILURE;
