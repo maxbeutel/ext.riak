@@ -162,7 +162,7 @@ int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, z
     char *client_id = NULL;
     
     zval *properties = NULL;
-    zval *bucket_name;
+    char *bucket_name;
     
     int result;
 
@@ -173,9 +173,9 @@ int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, z
         goto cleanup;
     }
     
-    bucket_name = zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
+    bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
     
-    if (asprintf(&bucket_properties_url, "%s/%s?props=true&keys=false", base_address, Z_STRVAL_P(bucket_name)) < 0) {
+    if (asprintf(&bucket_properties_url, "%s/%s?props=true&keys=false", base_address, bucket_name) < 0) {
         RIAK_MALLOC_WARNING();
         result = FAILURE;
         goto cleanup;
