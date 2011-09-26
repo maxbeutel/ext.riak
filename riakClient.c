@@ -243,22 +243,18 @@ PHP_METHOD(riakClient, getClientId) {
 }
 
 PHP_METHOD(riakClient, isAlive) {
-    CURL *curl;
-    CURLcode res;
-    
-    struct curl_slist *headers = NULL;
-    riakCurlResponse response;
-    
-    char *status_ok = "OK";
-    
-    char *client_id;
-    
     char *base_address = NULL;
     char *ping_url = NULL;
-    char *client_id_header = NULL;
     
+    char *client_id;
+
+    char *status = NULL;
+    
+    char *status_ok = "OK";
     int comparision_res;
         
+    
+    
     /* build ping url */
     if (riak_client_base_address(getThis(), 0, &base_address TSRMLS_CC) == FAILURE) {
         goto cleanup;
@@ -272,51 +268,27 @@ PHP_METHOD(riakClient, isAlive) {
     /* build client id header */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
-    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
-        RIAK_MALLOC_WARNING();
-        goto cleanup;
-    }
-    
-    curl = curl_easy_init();
-    
-    if (curl) {
-        /* exec request */
-        riak_curl_response_init(&response);
-        
-        headers = curl_slist_append(headers, client_id_header);
-        
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
-        curl_easy_setopt(curl, CURLOPT_URL, ping_url);        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-        
-        res = curl_easy_perform(curl);
-        
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-        
-        comparision_res = strcmp(status_ok, response.response_body);
-        
-        efree(response.response_body);  
+    if (riak_curl_fetch_text_response(client_id, ping_url, &status TSRMLS_CC) == SUCCESS) {
+        comparision_res = strcmp(status, status_ok);
     } else {
-        RIAK_CURL_WARNING();
+        comparision_res = -1;
         goto cleanup;
     }
-    
-    
+
+
     cleanup:
-    
+        
     if (base_address) {
-        free(base_address);
+        free(base_address);    
     }
     
     if (ping_url) {
         free(ping_url);
     }
     
-    if (client_id_header) {
-        free(client_id_header);
-    }    
+    if (status) {
+        free(status);
+    }
     
     
     if (comparision_res == 0) {
@@ -338,19 +310,15 @@ PHP_METHOD(riakClient, bucket) {
     CALL_METHOD2(riakBucket, __construct, return_value, return_value, getThis(), name);
 }
 
-PHP_METHOD(riakClient, buckets) {
-    CURL *curl;
-    CURLcode res;
-    
-    struct curl_slist *headers = NULL;
-    riakCurlResponse response;
-    
+PHP_METHOD(riakClient, buckets) {    
     char *base_address = NULL;
     char *bucket_list_url = NULL;
     char *client_id_header = NULL;
     
     char *client_id; 
-
+    
+    zval *buckets = NULL;
+    
 
     /* build buckets url */
     if (riak_client_base_address(getThis(), 1, &base_address TSRMLS_CC) == FAILURE) {
@@ -361,80 +329,46 @@ PHP_METHOD(riakClient, buckets) {
         RIAK_MALLOC_WARNING();
         goto cleanup;
     }
-         
+
     /* build client id header */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
-    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
-        RIAK_MALLOC_WARNING();
-        goto cleanup;
-    }
+    MAKE_STD_ZVAL(buckets);
     
-    curl = curl_easy_init();
-    
-    if (curl) {        
-        /* exec request */
-        riak_curl_response_init(&response);
-        
-        headers = curl_slist_append(headers, client_id_header);
-        
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
-        curl_easy_setopt(curl, CURLOPT_URL, bucket_list_url);        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-        
-        res = curl_easy_perform(curl);
-        
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-                
+    if (riak_curl_fetch_json_response(client_id, bucket_list_url, &buckets TSRMLS_CC) == SUCCESS) {
         array_init(return_value);
         
-        if (response.len > 0) {
-            /* decode json string */
-            zval *buckets;
-            MAKE_STD_ZVAL(buckets);
-            php_json_decode(buckets, response.response_body, response.len, 1, 20 TSRMLS_CC);
-            
-            /* search "buckets" key */
-            zval **bucket_names_array;
-            
-            HashTable *buckets_hash = NULL;
-            buckets_hash = Z_ARRVAL_P(buckets);
- 
-            /* iterate over bucket names, create riakBucket instances */
-            if (zend_hash_find(buckets_hash, "buckets", sizeof("buckets"), (void**) &bucket_names_array) == SUCCESS) {
-                zval *arr, **data, *bucket_name;
-                HashTable *arr_hash;
-                HashPosition pointer;
-    
-                arr_hash = Z_ARRVAL_PP(bucket_names_array);
-    
-                for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
-                    if (Z_TYPE_PP(data) == IS_STRING) {
-                        zval *bucket_instance;
-                        MAKE_STD_ZVAL(bucket_instance);
-                        
-                        bucket_name = *data;
-                        
-                        object_init_ex(bucket_instance, riak_ce_riakBucket);
-                        CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), bucket_name);
-                        
-                        add_next_index_zval(return_value, bucket_instance);
-                    }
+        /* search "buckets" key */
+        zval **bucket_names_array;
+        
+        HashTable *buckets_hash = NULL;
+        buckets_hash = Z_ARRVAL_P(buckets);
+
+        /* iterate over bucket names, create riakBucket instances */
+        if (zend_hash_find(buckets_hash, "buckets", sizeof("buckets"), (void**) &bucket_names_array) == SUCCESS) {
+            zval *arr, **data, *bucket_name;
+            HashTable *arr_hash;
+            HashPosition pointer;
+
+            arr_hash = Z_ARRVAL_PP(bucket_names_array);
+
+            for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
+                if (Z_TYPE_PP(data) == IS_STRING) {
+                    zval *bucket_instance;
+                    MAKE_STD_ZVAL(bucket_instance);
+                    
+                    bucket_name = *data;
+                    
+                    object_init_ex(bucket_instance, riak_ce_riakBucket);
+                    CALL_METHOD2(riakBucket, __construct, bucket_instance, bucket_instance, getThis(), bucket_name);
+                    
+                    add_next_index_zval(return_value, bucket_instance);
                 }
             }
-
-            zval_ptr_dtor(&buckets);
-        } 
-        
-        efree(response.response_body);
-    } else {
-        RIAK_CURL_WARNING();
-        goto cleanup;
-    }
-             
+        }
+    } 
     
+  
     cleanup:
     
     if (base_address) {
@@ -447,6 +381,10 @@ PHP_METHOD(riakClient, buckets) {
     
     if (client_id_header) {
         free(client_id_header);
+    }
+    
+    if (buckets) {
+        zval_ptr_dtor(&buckets);
     }
 }
 

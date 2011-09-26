@@ -1,10 +1,14 @@
 #include <php.h>
 
+#include <ext/json/php_json.h>
+
 #include <curl/curl.h>
 #include <curl/types.h>
 #include <curl/easy.h>
 
 #include "riak_curl.h"
+#include "riak_shared.h"
+
 
 void riak_curl_response_init(riakCurlResponse *s) {
     s->len = 0;
@@ -23,36 +27,17 @@ size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlRespons
     return size * nmemb;
 }
 
-
-
-/* TODO make exec curl request function */
-/*
+int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
     
     struct curl_slist *headers = NULL;
-    riakCurlResponse response;    
+    riakCurlResponse response;   
     
-    char *base_address = NULL;
-    char *bucket_properties_url = NULL;
-    
-    char *client_id = NULL;
-    
+    char *client_id_header = NULL;
+      
     int result;
     
-    if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
-        result = FAILURE;
-        goto cleanup;
-    }
-    
-    if (asprintf(bucket_properties_url, "%s/?props=true&keys=false") < 0) {
-        RIAK_MALLOC_WARNING();
-        result = FAILURE;
-        goto cleanup;
-    }
-
-
-    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
     if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
         RIAK_MALLOC_WARNING();
@@ -68,7 +53,7 @@ size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlRespons
         headers = curl_slist_append(headers, client_id_header);
         
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
-        curl_easy_setopt(curl, CURLOPT_URL, bucket_properties_url);        
+        curl_easy_setopt(curl, CURLOPT_URL, request_url);        
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
         
@@ -77,13 +62,56 @@ size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlRespons
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
         
-        php_printf("Bucket properties: %s\n", response.response_body);
-        
+        asprintf(response_body, "%s", response.response_body);
 
         efree(response.response_body);  
+        
+        result = SUCCESS;
     } else {
         RIAK_CURL_WARNING();
         result = FAILURE;
         goto cleanup;
     }
- */
+    
+    
+    cleanup:
+        
+    if (client_id_header) {
+        free(client_id_header);
+    }
+    
+    return result;
+}
+
+int riak_curl_fetch_text_response(char *client_id, char *request_url, char **text_response TSRMLS_DC) {
+    return riak_curl_fetch_response(client_id, request_url, text_response TSRMLS_CC);
+}
+
+int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response TSRMLS_DC) {
+    char *response = NULL;
+    
+    zval *tmp = NULL;
+    
+    int result;
+    
+    if (riak_curl_fetch_response(client_id, request_url, &response TSRMLS_CC) == SUCCESS) {
+        tmp = *json_response;
+        
+        php_json_decode(tmp, response, strlen(response), 1, 20 TSRMLS_CC);
+        
+        result = SUCCESS;
+    } else {
+        result = FAILURE;
+    }
+    
+    
+    if (response) {
+        free(response);
+    }
+    
+    return result;
+}
+
+
+
+
