@@ -445,7 +445,6 @@ PHP_METHOD(riakBucket, getProperty) {
                         
             zval_ptr_dtor(property);
         }
-        
     }    
 
     
