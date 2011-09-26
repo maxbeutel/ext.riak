@@ -387,6 +387,32 @@ PHP_METHOD(riakBucket, setAllowMultiples) {
 }
 
 PHP_METHOD(riakBucket, getAllowMultiples) {
+    int multiples_allowed;
+    
+    zval *multiples_property_name;
+    MAKE_STD_ZVAL(multiples_property_name);
+    ZVAL_STRING(multiples_property_name, "allow_mult", 1);
+    
+    zval *allow_multiples;
+    MAKE_STD_ZVAL(allow_multiples);
+
+    
+    CALL_METHOD1(riakBucket, getProperty, allow_multiples, getThis(), multiples_property_name);
+    
+    if (zend_is_true(allow_multiples)) {
+        multiples_allowed = 1;
+    } else {
+        multiples_allowed = 0;
+    }
+    
+    zval_ptr_dtor(&multiples_property_name);
+    zval_ptr_dtor(&allow_multiples);
+    
+    if (multiples_allowed) {
+        RETURN_TRUE;
+    } else {
+        RETURN_FALSE;
+    }
 }
 
 PHP_METHOD(riakBucket, getProperty) {
@@ -398,11 +424,12 @@ PHP_METHOD(riakBucket, getProperty) {
     zval *properties = NULL;
     
     int property_found = 0;
+    
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &key, &key_len) == FAILURE) {
         return;
     }    
-    
+        
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
     
     MAKE_STD_ZVAL(properties);
@@ -415,18 +442,14 @@ PHP_METHOD(riakBucket, getProperty) {
  
             *return_value = **property;
             zval_copy_ctor(return_value);
-            
+                        
             zval_ptr_dtor(property);
         }
         
     }    
+
     
-    
-    cleanup:
-        
-    if (properties) {
-        zval_ptr_dtor(&properties);
-    }
+    zval_ptr_dtor(&properties);
     
     if (!property_found) {
         RETURN_NULL();
