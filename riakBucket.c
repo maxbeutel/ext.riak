@@ -396,6 +396,8 @@ PHP_METHOD(riakBucket, getProperty) {
     zval *client_instance;
     
     zval *properties = NULL;
+    
+    int property_found = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &key, &key_len) == FAILURE) {
         return;
@@ -405,16 +407,29 @@ PHP_METHOD(riakBucket, getProperty) {
     
     MAKE_STD_ZVAL(properties);
     
-    if (riak_bucket_fetch_properties(client_instance, getThis(), &properties TSRMLS_CC) == FAILURE) {
-        goto cleanup;
+    if (riak_bucket_fetch_properties(client_instance, getThis(), &properties TSRMLS_CC) == SUCCESS) {
+        zval **property = NULL;
+        
+        if (zend_hash_find(Z_ARRVAL_P(properties), key, key_len + 1, (void**) &property) == SUCCESS) {
+            property_found = 1;
+ 
+            *return_value = **property;
+            zval_copy_ctor(return_value);
+            
+            zval_ptr_dtor(property);
+        }
+        
     }    
-    
     
     
     cleanup:
         
     if (properties) {
         zval_ptr_dtor(&properties);
+    }
+    
+    if (!property_found) {
+        RETURN_NULL();
     }
 }
 
