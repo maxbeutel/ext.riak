@@ -404,11 +404,11 @@ PHP_METHOD(riakBucket, getProperty) {
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
     
     MAKE_STD_ZVAL(properties);
-    array_init(properties);
     
     if (riak_bucket_fetch_properties(client_instance, getThis(), &properties TSRMLS_CC) == FAILURE) {
         goto cleanup;
     }    
+    
     
     
     cleanup:
