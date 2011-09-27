@@ -243,6 +243,62 @@ int riak_bucket_fetch_property(char *key, int key_len, zval *client_instance, zv
     return result;
 }
 
+int riak_bucket_set_properties(zval *client_instance, zval *bucket_instance, zval *properties TSRMLS_DC) {
+    char *base_address = NULL;
+    char *bucket_properties_url = NULL;
+    
+    char *client_id = NULL;
+    
+    char *bucket_name;
+
+    int result;
+    
+    zval *bucket_properties;
+    MAKE_STD_ZVAL(bucket_properties);
+    array_init(bucket_properties);
+    add_assoc_zval(bucket_properties, "props", properties);
+    
+    
+    /* build bucket properties url */
+    if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
+        result = FAILURE;
+        goto cleanup;
+    }
+    
+    bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
+    
+    if (asprintf(&bucket_properties_url, "%s/%s", base_address, bucket_name) < 0) {
+        RIAK_MALLOC_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+    
+    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    
+
+    if (riak_curl_send_put_json_request(client_id, bucket_properties_url, bucket_properties TSRMLS_CC) == SUCCESS) {
+        result = SUCCESS;
+    } else {
+        zend_error(E_WARNING, "Could not update bucket properties");
+        result = FAILURE;
+    }
+    
+    
+    cleanup:
+
+    if (base_address) {
+        free(base_address);
+    }
+    
+    if (bucket_properties_url) {
+        free(bucket_properties_url);
+    }
+    
+    zval_ptr_dtor(&bucket_properties);
+    
+    return result;
+}
+
 
 PHP_METHOD(riakBucket, __construct) {    
     zval *client;
@@ -488,9 +544,46 @@ PHP_METHOD(riakBucket, getProperty) {
 }
 
 PHP_METHOD(riakBucket, setProperty) {
+    char *key;
+    int key_len;
+    
+    zval *value;
+    
+    zval *client_instance;
+    
+    zval *properties;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz", &key, &key_len, &value) == FAILURE) {
+        return;
+    }
+    
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+    
+    
+    MAKE_STD_ZVAL(properties);
+    array_init(properties);
+    
+    add_assoc_zval(properties, key, value);
+    
+    riak_bucket_set_properties(client_instance, getThis(), properties TSRMLS_CC);
+    
+    zval_ptr_dtor(&properties);
+    
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakBucket, setProperties) {
+    zval *properties;
+    
+    zval *client_instance;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a", &properties) == FAILURE) {
+        return;
+    }
+    
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+    
+    riak_bucket_set_properties(client_instance, getThis(), properties TSRMLS_CC);
 }
 
 PHP_METHOD(riakBucket, getProperties) {

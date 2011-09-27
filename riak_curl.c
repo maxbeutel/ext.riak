@@ -2,6 +2,8 @@
 
 #include <ext/json/php_json.h>
 
+#include "ext/standard/php_smart_str.h"
+
 #include <curl/curl.h>
 #include <curl/types.h>
 #include <curl/easy.h>
@@ -113,6 +115,84 @@ int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **jso
     
     return result;
 }
+
+int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data TSRMLS_DC) {
+    CURL *curl;
+    CURLcode res;
+    
+    struct curl_slist *headers = NULL;
+
+    char *client_id_header = NULL;
+    
+    smart_str buf = {0};
+    char *json_struct;
+    
+    int result;
+    
+    long http_code = 0;
+    
+    
+    if (asprintf(&client_id_header, "X-Riak-ClientId: %s", client_id) < 0) {
+        RIAK_MALLOC_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+    
+    php_json_encode(&buf, data, 0 TSRMLS_CC);
+    
+    json_struct = strndup(buf.c, buf.len);
+    php_printf("json encoded: |%s|\n", json_struct);
+
+    curl = curl_easy_init();
+    
+    if (curl) {
+        headers = curl_slist_append(headers, client_id_header);
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+        curl_easy_setopt(curl, CURLOPT_URL, request_url);  
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_struct);
+   
+        res = curl_easy_perform(curl);
+
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+      
+        if (CURLE_OK != res || http_code != 204) {
+            php_printf("Error: %s\n", curl_easy_strerror(res));
+            result = FAILURE;
+        }
+        
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+        
+        result = SUCCESS;
+    } else {
+        RIAK_CURL_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+
+    
+    cleanup:
+        
+    if (client_id_header) {
+        free(client_id_header);
+    }    
+        
+    smart_str_free(&buf);
+    
+    return result;
+}
+
+
+
+
+
+
+
+
 
 
 
