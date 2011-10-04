@@ -143,14 +143,8 @@ int riak_object_get_sibling_count(zval *object_instance TSRMLS_DC) {
     
     
     siblings = zend_read_property(riak_ce_riakObject, object_instance, RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, 0 TSRMLS_CC);
-    
-    if (Z_TYPE_P(siblings) == IS_ARRAY) {
-        siblings_hash = Z_ARRVAL_P(siblings);
-        
-        siblings_count = zend_hash_num_elements(siblings_hash);
-    } else {
-        siblings_count = 0;
-    }
+    siblings_hash = Z_ARRVAL_P(siblings);
+    siblings_count = zend_hash_num_elements(siblings_hash);
     
     return siblings_count;
 }
@@ -163,7 +157,7 @@ PHP_METHOD(riakObject, __construct) {
     char *key;
     int key_len;
 
-    zval *headers, *links;
+    zval *headers, *links, *siblings;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos", &client, &bucket, &key, &key_len) == FAILURE) {
         return;
@@ -186,6 +180,13 @@ PHP_METHOD(riakObject, __construct) {
     zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, links TSRMLS_CC);
     
     zval_ptr_dtor(&links);
+    
+    MAKE_STD_ZVAL(siblings);
+    array_init(siblings);
+    
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, links TSRMLS_CC);
+    
+    zval_ptr_dtor(&siblings);    
 }
 
 PHP_METHOD(riakObject, getBucket) {
