@@ -198,6 +198,21 @@ PHP_METHOD(riakObject, exists) {
 }
 
 PHP_METHOD(riakObject, getContentType) {
+    zval *headers;
+    
+    headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
+    
+    HashTable *headers_hash = NULL;
+    headers_hash = Z_ARRVAL_P(headers);
+    
+    zval **content_type;
+
+    if (zend_hash_find(headers_hash, "content-type", sizeof("content-type"), (void**) &content_type) == SUCCESS) {
+        *return_value = **content_type;
+        zval_copy_ctor(return_value); 
+        
+        zval_ptr_dtor(content_type);
+    }
 }
 
 PHP_METHOD(riakObject, setContentType) {
