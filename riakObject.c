@@ -262,6 +262,13 @@ PHP_METHOD(riakObject, store) {
 }
 
 PHP_METHOD(riakObject, reload) {
+    long r;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &r) == FAILURE) {
+        return;
+    }
+    
+    php_printf("Reloading object with: r=%ld\n", r);
 }
 
 PHP_METHOD(riakObject, delete) {
