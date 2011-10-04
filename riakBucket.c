@@ -158,14 +158,10 @@ void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance,
 void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, zval *r, zval *return_value TSRMLS_DC) {
     zval *bucket_r;
     
-    
     bucket_r = zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC);
     
-    php_printf("User supplied r:%ld\n", Z_LVAL_P(r));
-    php_printf("Bucket r: %ld\n", Z_LVAL_P(bucket_r));
-    
     riak_bucket_create_new_object(client_instance, bucket_instance, key, NULL, NULL, return_value TSRMLS_CC);
-    CALL_METHOD1(riakObject, reload, return_value, return_value, (Z_LVAL_P(r) > 0 ? r : bucket_r));
+    CALL_METHOD1(riakObject, reload, return_value, return_value, (Z_TYPE_P(r) == IS_LONG && Z_LVAL_P(r) > 0 ? r : bucket_r));
 }
 
 int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {

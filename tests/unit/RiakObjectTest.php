@@ -2,8 +2,13 @@
 
 class RiakObjectTest extends PHPUnit_Framework_TestCase
 {
-    public function test()
+    public function testEmptySiblings()
     {
-        // ... dummy
+        $c = new riakClient();
+        $b = $c->bucket('__extRiak-bucket_2');
+        $o = $b->get('key_1');
+        
+        $this->assertFalse($o->hasSiblings());
+        $this->assertSame(0, $o->getSiblingCount());
     }
 }
