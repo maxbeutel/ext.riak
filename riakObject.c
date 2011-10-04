@@ -252,6 +252,8 @@ PHP_METHOD(riakObject, setContentType) {
     
     if (strcmp(content_type, "text/json") == 0) {
         zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 1 TSRMLS_CC);
+    } else {
+        zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 0 TSRMLS_CC);
     }
     
     RIAK_RETURN_SELF();
