@@ -83,6 +83,7 @@ class RiakBucketTest extends PHPUnit_Framework_TestCase
         
         $this->assertInstanceOf('riakObject', $o);
         $this->assertSame('text/json', $o->getContentType());
+        $this->assertFalse($o->exists());
     }
     
     public function testNewBinary()
@@ -93,5 +94,6 @@ class RiakBucketTest extends PHPUnit_Framework_TestCase
         
         $this->assertInstanceOf('riakObject', $o);
         $this->assertSame('text/plain', $o->getContentType());
+        $this->assertFalse($o->exists());
     }    
 }
