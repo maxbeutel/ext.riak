@@ -250,6 +250,7 @@ PHP_METHOD(riakObject, setContentType) {
     headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
     add_assoc_stringl(headers, "content-type", content_type, content_type_len, 1);
     
+    /* @TODO check if jsonize prop is actually needed */
     if (strcmp(content_type, "text/json") == 0) {
         zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 1 TSRMLS_CC);
     } else {
