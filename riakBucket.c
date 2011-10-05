@@ -133,7 +133,7 @@ void riak_init_riakBucket(TSRMLS_D) {
 
 
 
-void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance, zval *key, zval *content_type, zval *data, zval *return_value TSRMLS_DC) {    
+PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance, zval *key, zval *content_type, zval *data, zval *return_value TSRMLS_DC) {    
     zval *default_content_type = NULL;
     
     object_init_ex(return_value, riak_ce_riakObject);
@@ -155,7 +155,7 @@ void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance,
     }    
 }
 
-void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, zval *r, zval *return_value TSRMLS_DC) {
+PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, zval *r, zval *return_value TSRMLS_DC) {
     zval *bucket_r;
     
     bucket_r = zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC);
@@ -164,7 +164,7 @@ void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval
     CALL_METHOD1(riakObject, reload, return_value, return_value, (Z_TYPE_P(r) == IS_LONG && Z_LVAL_P(r) > 0 ? r : bucket_r));
 }
 
-int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
+PHPAPI int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
     char *base_address = NULL;
     char *bucket_properties_url = NULL;
     
@@ -224,7 +224,7 @@ int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, z
     return result;
 }
 
-int riak_bucket_fetch_property(char *key, int key_len, zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
+PHPAPI int riak_bucket_fetch_property(char *key, int key_len, zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
     zval *properties;
     MAKE_STD_ZVAL(properties);
     
@@ -252,7 +252,7 @@ int riak_bucket_fetch_property(char *key, int key_len, zval *client_instance, zv
     return result;
 }
 
-int riak_bucket_set_properties(zval *client_instance, zval *bucket_instance, zval *properties TSRMLS_DC) {
+PHPAPI int riak_bucket_set_properties(zval *client_instance, zval *bucket_instance, zval *properties TSRMLS_DC) {
     char *base_address = NULL;
     char *bucket_properties_url = NULL;
     

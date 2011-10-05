@@ -12,13 +12,13 @@
 #include "riak_shared.h"
 
 
-void riak_curl_response_init(riakCurlResponse *s) {
+PHPAPI void riak_curl_response_init(riakCurlResponse *s) {
     s->len = 0;
     s->response_body = emalloc(s->len + 1);
     s->response_body[0] = '\0';
 }
 
-size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlResponse *s) {
+PHPAPI size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlResponse *s) {
     size_t new_len = s->len + size * nmemb;
     s->response_body = erealloc(s->response_body, new_len + 1);
     
@@ -29,7 +29,7 @@ size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlRespons
     return size * nmemb;
 }
 
-int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC) {
+PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
     
@@ -87,11 +87,11 @@ int riak_curl_fetch_response(char *client_id, char *request_url, char **response
     return result;
 }
 
-int riak_curl_fetch_text_response(char *client_id, char *request_url, char **text_response TSRMLS_DC) {
+PHPAPI int riak_curl_fetch_text_response(char *client_id, char *request_url, char **text_response TSRMLS_DC) {
     return riak_curl_fetch_response(client_id, request_url, text_response TSRMLS_CC);
 }
 
-int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response TSRMLS_DC) {
+PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response TSRMLS_DC) {
     char *response = NULL;
     
     zval *tmp = NULL;
@@ -116,7 +116,7 @@ int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **jso
     return result;
 }
 
-int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data TSRMLS_DC) {
+PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
     

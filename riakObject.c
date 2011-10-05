@@ -135,7 +135,7 @@ void riak_init_riakObject(TSRMLS_D) {
 }
 
 
-int riak_object_get_sibling_count(zval *object_instance TSRMLS_DC) {
+PHPAPI int riak_object_get_sibling_count(zval *object_instance TSRMLS_DC) {
     int siblings_count;
     
     zval *siblings;

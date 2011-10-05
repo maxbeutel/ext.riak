@@ -28,7 +28,7 @@ zend_class_entry *riak_ce_riakClient;
 #define RIAK_CLIENT_DW "dw"
 #define RIAK_CLIENT_DW_LEN strlen(RIAK_CLIENT_DW)
 
-int riak_client_base_address(zval *object, int add_prefix, char **base_address TSRMLS_DC);
+PHPAPI int riak_client_base_address(zval *object, int add_prefix, char **base_address TSRMLS_DC);
 
 PHP_METHOD(riakClient, __construct);
 

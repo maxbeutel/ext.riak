@@ -98,7 +98,7 @@ void riak_init_riakClient(TSRMLS_D) {
 }
 
 
-int riak_client_assign_new_client_id(zval *object TSRMLS_DC) {
+PHPAPI int riak_client_assign_new_client_id(zval *object TSRMLS_DC) {
     int result; 
     
     char *object_hash;
@@ -122,7 +122,7 @@ int riak_client_assign_new_client_id(zval *object TSRMLS_DC) {
     return result;
 }
 
-int riak_client_base_address(zval *object, int add_prefix, char **base_address TSRMLS_DC) {    
+PHPAPI int riak_client_base_address(zval *object, int add_prefix, char **base_address TSRMLS_DC) {    
     int result;
     
     char *host;
