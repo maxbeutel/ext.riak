@@ -147,7 +147,7 @@ PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, z
     
     if (curl) {
         headers = curl_slist_append(headers, client_id_header);
-        headers = curl_slist_append(headers, "Content-Type: application/json");
+        headers = curl_slist_append(headers, "Content-Type: application/json"); /* @TODO shouldnt this be RIAK_OBJECT_JSON_CONTENTTYPE? */
         
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
         curl_easy_setopt(curl, CURLOPT_URL, request_url);  

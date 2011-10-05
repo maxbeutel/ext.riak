@@ -29,6 +29,14 @@
 #define RIAK_OBJECT_DATA "data"
 #define RIAK_OBJECT_DATA_LEN strlen(RIAK_OBJECT_DATA)
 
+#define RIAK_OBJECT_HEADER_CONTENTTYPE "content-type"
+#define RIAK_OBJECT_HEADER_CONTENTTYPE_SIZE sizeof(RIAK_OBJECT_HEADER_CONTENTTYPE)
+
+#define RIAK_OBJECT_HEADER_HTTPSTATUS "http_status"
+#define RIAK_OBJECT_HEADER_HTTPSTATUS_SIZE sizeof(RIAK_OBJECT_HEADER_HTTPSTATUS)
+
+#define RIAK_OBJECT_JSON_CONTENTTYPE "text/json"
+
 zend_class_entry *riak_ce_riakObject;
 
 PHP_METHOD(riakObject, __construct);

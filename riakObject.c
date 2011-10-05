@@ -240,7 +240,7 @@ PHP_METHOD(riakObject, setData) {
 }
 
 PHP_METHOD(riakObject, status) {
-    if (riak_object_get_header(getThis(), "http_code", sizeof("http_code"), &return_value TSRMLS_CC) == FAILURE) {
+    if (riak_object_get_header(getThis(), RIAK_OBJECT_HEADER_HTTPSTATUS, RIAK_OBJECT_HEADER_HTTPSTATUS_SIZE, &return_value TSRMLS_CC) == FAILURE) {
         RETURN_NULL();
     }
 }
@@ -250,7 +250,7 @@ PHP_METHOD(riakObject, exists) {
 }
 
 PHP_METHOD(riakObject, getContentType) {
-    if (riak_object_get_header(getThis(), "content-type", sizeof("content-type"), &return_value TSRMLS_CC) == FAILURE) {
+    if (riak_object_get_header(getThis(), RIAK_OBJECT_HEADER_CONTENTTYPE, RIAK_OBJECT_HEADER_CONTENTTYPE_SIZE, &return_value TSRMLS_CC) == FAILURE) {
         RETURN_NULL();
     }
 }
@@ -266,10 +266,10 @@ PHP_METHOD(riakObject, setContentType) {
     }
     
     headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
-    add_assoc_stringl(headers, "content-type", content_type, content_type_len, 1);
+    add_assoc_stringl(headers, RIAK_OBJECT_HEADER_CONTENTTYPE, content_type, content_type_len, 1);
     
     /* @TODO check if jsonize prop is actually needed */
-    if (strcmp(content_type, "text/json") == 0) {
+    if (strcmp(content_type, RIAK_OBJECT_JSON_CONTENTTYPE) == 0) {
         zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 1 TSRMLS_CC);
     } else {
         zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 0 TSRMLS_CC);
