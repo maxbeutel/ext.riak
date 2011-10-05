@@ -149,6 +149,32 @@ PHPAPI int riak_object_get_sibling_count(zval *object_instance TSRMLS_DC) {
     return siblings_count;
 }
 
+PHPAPI int riak_object_get_header(zval *object_instance, char *key, int key_size, zval **return_value TSRMLS_DC) {
+    zval *headers;
+    
+    int result;
+    
+    headers = zend_read_property(riak_ce_riakObject, object_instance, RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
+    
+    HashTable *headers_hash = NULL;
+    headers_hash = Z_ARRVAL_P(headers);
+    
+    zval **value;
+
+    if (zend_hash_find(headers_hash, key, key_size, (void**) &value) == SUCCESS) {
+        **return_value = **value;
+        zval_copy_ctor(*return_value);
+        
+        result = SUCCESS;
+                    
+        zval_ptr_dtor(value);
+    } else {
+        result = FAILURE;
+    }
+    
+    return result;
+}
+
 
 PHP_METHOD(riakObject, __construct) {
     zval *client;
@@ -214,6 +240,9 @@ PHP_METHOD(riakObject, setData) {
 }
 
 PHP_METHOD(riakObject, status) {
+    if (riak_object_get_header(getThis(), "http_code", sizeof("http_code"), &return_value TSRMLS_CC) == FAILURE) {
+        RETURN_NULL();
+    }
 }
 
 PHP_METHOD(riakObject, exists) {
@@ -221,20 +250,8 @@ PHP_METHOD(riakObject, exists) {
 }
 
 PHP_METHOD(riakObject, getContentType) {
-    zval *headers;
-    
-    headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
-    
-    HashTable *headers_hash = NULL;
-    headers_hash = Z_ARRVAL_P(headers);
-    
-    zval **content_type;
-
-    if (zend_hash_find(headers_hash, "content-type", sizeof("content-type"), (void**) &content_type) == SUCCESS) {
-        *return_value = **content_type;
-        zval_copy_ctor(return_value); 
-        
-        zval_ptr_dtor(content_type);
+    if (riak_object_get_header(getThis(), "content-type", sizeof("content-type"), &return_value TSRMLS_CC) == FAILURE) {
+        RETURN_NULL();
     }
 }
 
