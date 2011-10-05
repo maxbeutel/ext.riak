@@ -162,12 +162,12 @@ PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, z
         if (CURLE_OK != res || http_code != 204) {
             php_printf("Error: %s\n", curl_easy_strerror(res));
             result = FAILURE;
+        } else {
+            result = SUCCESS;
         }
         
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
-        
-        result = SUCCESS;
     } else {
         RIAK_CURL_WARNING();
         result = FAILURE;
