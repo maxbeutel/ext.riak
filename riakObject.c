@@ -365,9 +365,30 @@ PHP_METHOD(riakObject, getSiblingCount) {
 }
 
 PHP_METHOD(riakObject, getSibling) {
+    long i;
+    long r = 0;
+    
+    zval *bucket_instance;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "i|l", &r) == FAILURE) {
+        return;
+    }
+    
+
+    if (r == 0) {
+        bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
+        r = Z_LVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC));
+    }
+    
+    /* @TODO exec request */
 }
 
 PHP_METHOD(riakObject, getSiblings) {
+    long r;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &r) == FAILURE) {
+        return;
+    }    
 }
 
 PHP_METHOD(riakObject, add) {
