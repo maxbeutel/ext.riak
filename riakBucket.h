@@ -30,10 +30,7 @@ PHP_METHOD(riakBucket, getDW);
 PHP_METHOD(riakBucket, setDW);
 
 PHP_METHOD(riakBucket, newObject);
-PHP_METHOD(riakBucket, newBinary);
-
-PHP_METHOD(riakBucket, get);
-PHP_METHOD(riakBucket, getBinary);
+PHP_METHOD(riakBucket, getObject);
 
 PHP_METHOD(riakBucket, setNVal);
 PHP_METHOD(riakBucket, getNVal);

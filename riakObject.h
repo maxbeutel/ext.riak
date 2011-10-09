@@ -35,6 +35,9 @@
 #define RIAK_OBJECT_HEADER_HTTPSTATUS "http_status"
 #define RIAK_OBJECT_HEADER_HTTPSTATUS_SIZE sizeof(RIAK_OBJECT_HEADER_HTTPSTATUS)
 
+#define RIAK_OBJECT_HEADER_VCLOCK "x-riak-vclock"
+#define RIAK_OBJECT_HEADER_VCLOCK_SIZE sizeof(RIAK_OBJECT_HEADER_VCLOCK)
+
 #define RIAK_OBJECT_JSON_CONTENTTYPE "text/json"
 
 zend_class_entry *riak_ce_riakObject;

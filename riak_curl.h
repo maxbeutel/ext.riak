@@ -1,19 +1,29 @@
 #ifndef RIAK_CURL_H
 #define RIAK_CURL_H
 
-typedef struct riak_curl_response {
-    char *response_body;
-    size_t len;
-} riakCurlResponse;
+#define RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON "Content-Type: text/json"
 
-PHPAPI void riak_curl_response_init(riakCurlResponse *s);
+typedef struct {
+    char** str;
+    size_t num;
+    size_t size;
+    size_t block_size;
+} riakCurlRequestHeader;
 
-PHPAPI size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlResponse *s);
+PHPAPI riakCurlRequestHeader* riak_curl_create_request_header();
+PHPAPI void riak_curl_delete_request_header(riakCurlRequestHeader* request_header);
+PHPAPI int riak_curl_add_request_header_str(riakCurlRequestHeader* request_header, char* str);
+
+PHPAPI char** riak_curl_add_request_header_start(riakCurlRequestHeader* request_header);
+PHPAPI char** riak_curl_add_request_header_end(riakCurlRequestHeader* request_header);
 
 PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response TSRMLS_DC);
+PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC);
 
-PHPAPI int riak_curl_fetch_text_response(char *client_id, char *request_url, char **text_response TSRMLS_DC);
+PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC);
+PHPAPI int riak_curl_send_post_json_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC);
 
-PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data TSRMLS_DC);
+PHPAPI int riak_curl_send_put_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC);
+PHPAPI int riak_curl_send_post_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC);
 
 #endif
