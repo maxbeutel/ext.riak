@@ -61,7 +61,7 @@ PHP_METHOD(riakLink, __construct) {
     char *tag;
     int tag_len;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos", &client, &bucket, &key, &key_len, &tag, &tag_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos|s", &client, &bucket, &key, &key_len, &tag, &tag_len) == FAILURE) {
         return;
     }
     
