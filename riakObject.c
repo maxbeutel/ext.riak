@@ -10,6 +10,7 @@
 #include "riakObject.h"
 #include "riakClient.h"
 #include "riakBucket.h"
+#include "riakLLink.h"
 
 
 
@@ -280,6 +281,25 @@ PHP_METHOD(riakObject, setContentType) {
 }
 
 PHP_METHOD(riakObject, addLink) {
+    zval *key;
+    
+    zval *tag;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &tag) == FAILURE) {
+        return;
+    }
+    
+    object_init_ex(return_value, riak_ce_riakLink);
+    
+    if (Z_TYPE_P(tag) == IS_NULL) {
+        CALL_METHOD3(riakLink, __construct, return_value, return_value, client_instance, bucket_instance, key);
+    } else {
+        CALL_METHOD4(riakLink, __construct, return_value, return_value, client_instance, bucket_instance, key, tag);
+    }
+    
+    /* @TODO remove existing link which is equal to this one */
+    /* @TODO add link to links array */
+    /* @TODO return object instance to caller */
 }
 
 PHP_METHOD(riakObject, removeLink) {
