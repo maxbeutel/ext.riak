@@ -60,6 +60,10 @@
     PUSH_PARAM(param1); PUSH_PARAM(param2);                               \
     CALL_METHOD_HELPER(classname, name, retval, thisptr, 3, param3);     \
     POP_PARAM(); POP_PARAM();
-  
+
+#define CALL_METHOD4(classname, name, retval, thisptr, param1, param2, param3, param4) \
+    PUSH_PARAM(param1); PUSH_PARAM(param2); PUSH_PARAM(param3);           \
+    CALL_METHOD_HELPER(classname, name, retval, thisptr, 4, param4);     \
+    POP_PARAM(); POP_PARAM(); POP_PARAM();
   
 #endif  
