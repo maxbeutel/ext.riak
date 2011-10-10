@@ -89,9 +89,7 @@ static function_entry riakBucket_methods[] = {
     PHP_ME(riakBucket, getDW, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, setDW, arginfo_riakBucket_setDW, ZEND_ACC_PUBLIC)
     PHP_ME(riakBucket, newObject, NULL, ZEND_ACC_PUBLIC)
-    /*PHP_ME(riakBucket, newBinary, arginfo_riakBucket_newBinary, ZEND_ACC_PUBLIC)*/
     PHP_ME(riakBucket, getObject, arginfo_riakBucket_getObject, ZEND_ACC_PUBLIC)
-    /*PHP_ME(riakBucket, getBinary, arginfo_riakBucket_getBinary, ZEND_ACC_PUBLIC)*/
     PHP_ME(riakBucket, setNVal, arginfo_riakBucket_setNVal, ZEND_ACC_PUBLIC)    
     PHP_ME(riakBucket, getNVal, NULL, ZEND_ACC_PUBLIC)    
     PHP_ME(riakBucket, setAllowMultiples, arginfo_riakBucket_setAllowMultiples, ZEND_ACC_PUBLIC)    

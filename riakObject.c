@@ -286,6 +286,7 @@ PHP_METHOD(riakObject, removeLink) {
 }
 
 PHP_METHOD(riakObject, getLinks) {
+    
 }
 
 PHP_METHOD(riakObject, store) {

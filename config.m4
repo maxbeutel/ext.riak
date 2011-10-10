@@ -21,7 +21,7 @@ if test "$PHP_RIAK" != "no"; then
     PHP_EVAL_INCLINE($RIAK_INCS)
 
     PHP_SUBST(RIAK_SHARED_LIBADD)
-    PHP_NEW_EXTENSION(riak, php_riak.c riakClient.c riakBucket.c riakObject.c riak_curl.c, $ext_shared)
+    PHP_NEW_EXTENSION(riak, php_riak.c riakClient.c riakBucket.c riakLink.c riakObject.c riak_curl.c, $ext_shared)
 fi
 
 

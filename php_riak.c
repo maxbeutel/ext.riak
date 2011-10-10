@@ -25,6 +25,7 @@ zend_module_entry riak_module_entry = {
 PHP_MINIT_FUNCTION(riak) {
     riak_init_riakClient(TSRMLS_C);
     riak_init_riakBucket(TSRMLS_C);  
+    riak_init_riakLink(TSRMLS_C);  
     riak_init_riakObject(TSRMLS_C);  
 }
 
