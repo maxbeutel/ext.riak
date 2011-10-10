@@ -177,6 +177,10 @@ PHPAPI int riak_object_get_header(zval *object_instance, char *key, int key_size
     return result;
 }
 
+PHPAPI void riak_object_add_link_as_request_header(riakCurlRequestHeader *request_header, zval* link TSRMLS_CC) {
+    riak_curl_add_request_header_str(request_header, "");    
+}
+
 
 PHP_METHOD(riakObject, __construct) {
     zval *client;
@@ -396,6 +400,17 @@ PHP_METHOD(riakObject, store) {
     
     if (zend_hash_num_elements(links_hash) > 0) {
         /* @TODO add links */
+        HashPosition pointer;
+        zval **link;
+        
+        for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &link, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
+            if (Z_TYPE_PP(data) == IS_OBJECT) {
+                php_printf("Adding link as request header\n");
+                riak_object_add_link_as_request_header(request_header, *link TSRMLS_CC);
+            } else {
+                php_printf("Link is no object\n");
+            }
+        }
     }
 
 

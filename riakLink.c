@@ -47,6 +47,29 @@ void riak_init_riakLink(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);    
+}
+
+PHPAPI int riak_link_create_request_header_str(char **str) {
+    int result;
+    
+    if (asprintf("") < 0) {
+        result = FAILURE;
+        RIAK_MALLOC_WARNING();
+    } else {
+        result = SUCCESS;
+    }
+    
+    return result;
+    
+    /* @TODO implement this: */
+    /*
+    $link = "</" .
+      $client->prefix . "/" .
+      urlencode($this->bucket) . "/" .
+      urlencode($this->key) . ">; riaktag=\"" .
+      urlencode($this->getTag()) . "\"";    
+    */
 }
 
 
@@ -61,6 +84,8 @@ PHP_METHOD(riakLink, __construct) {
     char *tag;
     int tag_len;
     
+    char *request_header_str = NULL;
+    
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos|s", &client, &bucket, &key, &key_len, &tag, &tag_len) == FAILURE) {
         return;
     }
@@ -69,6 +94,15 @@ PHP_METHOD(riakLink, __construct) {
     zend_update_property(riak_ce_riakLink, getThis(), RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, client TSRMLS_CC);
     zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, key, key_len TSRMLS_CC);
     zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, tag, tag_len TSRMLS_CC);
+    
+    if (riak_link_create_request_header_str(&request_header_str) == SUCCESS) {
+        zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, request_header_str, strlen(request_header_str) TSRMLS_CC);
+    }
+    
+    
+    if (request_header_str) {
+        free(request_header_str);
+    }
 }
 
 PHP_METHOD(riakLink, getObject) {

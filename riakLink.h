@@ -16,6 +16,9 @@ zend_class_entry *riak_ce_riakLink;
 #define RIAK_LINK_CLIENT "client"
 #define RIAK_LINK_CLIENT_LEN strlen(RIAK_LINK_CLIENT)
 
+#define RIAK_LINK_REQUESTHEADER_STR "requestHeader"
+#define RIAK_LINK_REQUESTHEADER_STR_LEN strlen(RIAK_LINK_REQUESTHEADER_STR)
+
 
 PHP_METHOD(riakLink, __construct);
 
