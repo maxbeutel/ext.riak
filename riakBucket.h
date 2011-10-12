@@ -126,12 +126,6 @@ PHP_METHOD(riakBucket, setDW);
 PHP_METHOD(riakBucket, newObject);
 PHP_METHOD(riakBucket, getObject);
 
-PHP_METHOD(riakBucket, setNVal);
-PHP_METHOD(riakBucket, getNVal);
-
-PHP_METHOD(riakBucket, setAllowMultiples);
-PHP_METHOD(riakBucket, getAllowMultiples);
-
 PHP_METHOD(riakBucket, setProperty);
 PHP_METHOD(riakBucket, getProperty);
 
