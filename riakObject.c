@@ -604,6 +604,22 @@ PHP_METHOD(riakObject, reload) {
 }
 
 PHP_METHOD(riakObject, delete) {
+    long dw = 0;
+    
+    zval *client_instance;
+    zval *bucket_instance;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &dw) == FAILURE) {
+        return;
+    }
+    
+    client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
+    bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
+    
+    dw = riak_bucket_local_or_client_setting(client_instance, bucket_instance, dw, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN TSRMLS_CC);
+    
+    /* @TODO exec request */
+    /* @TODO freeze object as it is deleted */
 }
 
 PHP_METHOD(riakObject, clear) {
@@ -646,17 +662,19 @@ PHP_METHOD(riakObject, getSibling) {
     long i;
     long r = 0;
     
+    zval *client_instance;
     zval *bucket_instance;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "i|l", &r) == FAILURE) {
         return;
     }
     
-
-    if (r == 0) {
-        bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
-        r = Z_LVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC));
-    }
+    client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
+    bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
+    
+    r = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
+    
+  
     
     /* @TODO exec request */
 }
