@@ -10,7 +10,7 @@
 #include "riakObject.h"
 #include "riakClient.h"
 #include "riakBucket.h"
-#include "riakLLink.h"
+#include "riakLink.h"
 
 
 
@@ -177,8 +177,12 @@ PHPAPI int riak_object_get_header(zval *object_instance, char *key, int key_size
     return result;
 }
 
-PHPAPI void riak_object_add_link_as_request_header(riakCurlRequestHeader *request_header, zval* link TSRMLS_CC) {
-    riak_curl_add_request_header_str(request_header, "");    
+PHPAPI void riak_object_add_link_as_request_header(riakCurlRequestHeader *request_header, zval* link_instance TSRMLS_DC) {
+    char *header_str;
+    
+    header_str = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, 0 TSRMLS_CC));
+    
+    riak_curl_add_request_header_str(request_header, header_str);    
 }
 
 
@@ -289,9 +293,15 @@ PHP_METHOD(riakObject, addLink) {
     
     zval *tag;
     
+    zval *client_instance;
+    zval *bucket_instance;
+    
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &tag) == FAILURE) {
         return;
     }
+    
+    client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
+    bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
     
     object_init_ex(return_value, riak_ce_riakLink);
     
@@ -399,16 +409,18 @@ PHP_METHOD(riakObject, store) {
     links_hash = Z_ARRVAL_P(links);
     
     if (zend_hash_num_elements(links_hash) > 0) {
-        /* @TODO add links */
         HashPosition pointer;
-        zval **link;
+        zval **links_data;
+        zval *link_instance;
         
-        for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &link, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
-            if (Z_TYPE_PP(data) == IS_OBJECT) {
+        for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &links_data, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
+            if (Z_TYPE_PP(links_data) == IS_OBJECT) {
                 php_printf("Adding link as request header\n");
-                riak_object_add_link_as_request_header(request_header, *link TSRMLS_CC);
+
+                link_instance = *links_data;
+                riak_object_add_link_as_request_header(request_header, link_instance TSRMLS_CC);
             } else {
-                php_printf("Link is no object\n");
+                php_printf("Link is no object?!\n");
             }
         }
     }
@@ -418,9 +430,10 @@ PHP_METHOD(riakObject, store) {
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
     
+    /* json content type header is added within specialized send_json_request functions, 
+       if data is not json, add custom content type before sending request
+    */
     if (strcmp(content_type, RIAK_OBJECT_JSON_CONTENTTYPE) == 0) {
-        /* json content type header is added within specialized send_json_request functions */
-        
         if (zend_is_true(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN, 0 TSRMLS_CC))) {
             if (riak_curl_send_put_json_request(client_id, object_url, data, request_header TSRMLS_CC) == FAILURE) {
                 zend_error(E_WARNING, "Could not update existing object");
@@ -431,7 +444,6 @@ PHP_METHOD(riakObject, store) {
             } 
         }
     } else {
-        /* add any non-json content type header if set */
         if (strlen(content_type) > 0) {
             if (asprintf(&content_type_request_header, "Content-Type: %s", content_type) == FAILURE) {
                 RIAK_MALLOC_WARNING();
