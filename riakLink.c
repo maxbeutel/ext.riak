@@ -13,10 +13,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_empty, 0)
 ZEND_END_ARG_INFO()
 
 RIAK_ARG_INFO
-ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_construct, 0, 0, 2)
-	ZEND_ARG_INFO(0, client)
-	ZEND_ARG_INFO(0, bucket)
-	ZEND_ARG_INFO(0, object)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_construct, 0, 0, 2)	
+	ZEND_ARG_OBJ_INFO(0, client, riakClient, 0)
+	ZEND_ARG_OBJ_INFO(0, bucket, riakBucket, 0)
+	ZEND_ARG_OBJ_INFO(0, object, riakObject, 0)
 	ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 

@@ -20,8 +20,8 @@ ZEND_END_ARG_INFO()
 
 RIAK_ARG_INFO
 ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_construct, 0, 0, 2)
-	ZEND_ARG_INFO(0, client)
-	ZEND_ARG_INFO(0, bucket)
+    ZEND_ARG_OBJ_INFO(0, client, riakClient, 0)
+    ZEND_ARG_OBJ_INFO(0, bucket, riakBucket, 0)
 	ZEND_ARG_INFO(0, key)
 ZEND_END_ARG_INFO()
 
@@ -34,12 +34,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_setContentType, 0, 0, 1)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_addLink, 0, 0, 1)
-	ZEND_ARG_INFO(0, link)
 	ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_removeLink, 0, 0, 1)
-	ZEND_ARG_INFO(0, link)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_removeLink, 0, 0, 0)
+	ZEND_ARG_OBJ_INFO(0, link, riakLink, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_removeLinkByTag, 0, 0, 1)
