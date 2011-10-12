@@ -114,8 +114,25 @@ void riak_init_riakBucket(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakBucket, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakBucket, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakBucket, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
-}
 
+    /* define constants for common properties */
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_ALLOWMULTIPLES, RIAK_BUCKET_CONSTANT_ALLOWMULTIPLES_SIZE, RIAK_BUCKET_PROP_ALLOWMULTIPLES TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_BIGVCLOCK, RIAK_BUCKET_CONSTANT_BIGVCLOCK_SIZE, RIAK_BUCKET_PROP_BIGVCLOCK TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_CHASHKEYFUN, RIAK_BUCKET_CONSTANT_CHASHKEYFUN_SIZE, RIAK_BUCKET_PROP_CHASHKEYFUN TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_LASTWRITEWINS, RIAK_BUCKET_CONSTANT_LASTWRITEWINS_SIZE, RIAK_BUCKET_PROP_LASTWRITEWINS TSRMLS_CC); 
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_LINKFUN, RIAK_BUCKET_CONSTANT_LINKFUN_SIZE, RIAK_BUCKET_PROP_LINKFUN TSRMLS_CC); 
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_NVAL, RIAK_BUCKET_CONSTANT_NVAL_SIZE, RIAK_BUCKET_PROP_NVAL TSRMLS_CC); 
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_OLDVCLOCK, RIAK_BUCKET_CONSTANT_OLDVCLOCK_SIZE, RIAK_BUCKET_PROP_OLDVCLOCK TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_POSTCOMMIT, RIAK_BUCKET_CONSTANT_POSTCOMMIT_SIZE, RIAK_BUCKET_PROP_POSTCOMMIT TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_PRECOMMIT, RIAK_BUCKET_CONSTANT_PRECOMMIT_SIZE, RIAK_BUCKET_PROP_PRECOMMIT TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_SMALLVCLOCK, RIAK_BUCKET_CONSTANT_SMALLVCLOCK_SIZE, RIAK_BUCKET_PROP_SMALLVCLOCK TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_YOUNGVCLOCK, RIAK_BUCKET_CONSTANT_YOUNGVCLOCK_SIZE, RIAK_BUCKET_PROP_YOUNGVCLOCK TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_NAME, RIAK_BUCKET_CONSTANT_NAME_SIZE, RIAK_BUCKET_PROP_NAME TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_R, RIAK_BUCKET_CONSTANT_R_SIZE, RIAK_BUCKET_PROP_R TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_RW, RIAK_BUCKET_CONSTANT_RW_SIZE, RIAK_BUCKET_PROP_RW TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_W, RIAK_BUCKET_CONSTANT_W_SIZE, RIAK_BUCKET_PROP_W TSRMLS_CC);
+    zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_DW, RIAK_BUCKET_CONSTANT_DW_SIZE, RIAK_BUCKET_PROP_DW TSRMLS_CC);
+}
 
 
 PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance, zval *key, zval *content_type, zval *data, zval *return_value TSRMLS_DC) {    
