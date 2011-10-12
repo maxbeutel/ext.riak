@@ -13,10 +13,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_empty, 0)
 ZEND_END_ARG_INFO()
 
 RIAK_ARG_INFO
-ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_construct, 0, 0, 2)	
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_construct, 0, 0, 3)	
 	ZEND_ARG_OBJ_INFO(0, client, riakClient, 0)
 	ZEND_ARG_OBJ_INFO(0, bucket, riakBucket, 0)
-	ZEND_ARG_OBJ_INFO(0, object, riakObject, 0)
+	ZEND_ARG_INFO(0, key)
 	ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 
@@ -47,7 +47,7 @@ void riak_init_riakLink(TSRMLS_D) {
         
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
-    zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);    
 }
@@ -74,21 +74,19 @@ PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_
     
     client_instance_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, 0 TSRMLS_CC);
-    object_instance_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, 0 TSRMLS_CC);
-    
+
     client_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, 0 TSRMLS_CC);
-    object_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, 0 TSRMLS_CC);
-    
+
 
     client_id_a = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance_a, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     bucket_name_a = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance_a, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
-    key_a = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, object_instance_a, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
+    key_a = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, 0 TSRMLS_CC));
     tag_a = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC));
     
     client_id_b = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance_b, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     bucket_name_b = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance_b, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
-    key_b = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, object_instance_b, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
+    key_b = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, 0 TSRMLS_CC));
     tag_b = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC));
     
     if (strcmp(client_id_a, client_id_b) != 0) {
@@ -110,7 +108,7 @@ PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_
     return 1;
 }
 
-PHPAPI int riak_link_create_request_header_str(char **str, zval* client_instance, zval* bucket_instance, zval* object_instance, char* tag, int tag_len TSRMLS_DC) {
+PHPAPI int riak_link_create_request_header_str(char **str, zval* client_instance, zval* bucket_instance, char *key, int key_len, char* tag, int tag_len TSRMLS_DC) {
     char *prefix;
     int prefix_len;
     
@@ -140,9 +138,6 @@ PHPAPI int riak_link_create_request_header_str(char **str, zval* client_instance
     
     bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
     bucket_name_len = Z_STRLEN_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
-    
-    key = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, object_instance, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
-    key_len = Z_STRLEN_P(zend_read_property(riak_ce_riakObject, object_instance, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));    
     
     /* urlencode values */
     prefix_encoded = estrndup(prefix, prefix_len);
@@ -176,23 +171,24 @@ PHP_METHOD(riakLink, __construct) {
     
     zval *bucket_instance;
     
-    zval *object_instance;
+    char *key;
+    int key_len;
     
     char *tag;
     int tag_len;
     
     char *request_header_str = NULL;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ooo|s", &client_instance, &bucket_instance, &object_instance, &tag, &tag_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos|s", &client_instance, &bucket_instance, &key, &key_len, &tag, &tag_len) == FAILURE) {
         return;
     }
     
     zend_update_property(riak_ce_riakLink, getThis(), RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, client_instance TSRMLS_CC);
     zend_update_property(riak_ce_riakLink, getThis(), RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, bucket_instance TSRMLS_CC);
-    zend_update_property(riak_ce_riakLink, getThis(), RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, object_instance TSRMLS_CC);
+    zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, key, key_len TSRMLS_CC);
     zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, tag, tag_len TSRMLS_CC);
     
-    if (riak_link_create_request_header_str(&request_header_str, client_instance, bucket_instance, object_instance, tag, tag_len TSRMLS_CC) == SUCCESS) {
+    if (riak_link_create_request_header_str(&request_header_str, client_instance, bucket_instance, key, key_len, tag, tag_len TSRMLS_CC) == SUCCESS) {
         zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, request_header_str, strlen(request_header_str) TSRMLS_CC);
     }
     
@@ -203,7 +199,25 @@ PHP_METHOD(riakLink, __construct) {
 }
 
 PHP_METHOD(riakLink, getObject) {
-    RIAK_CALL_SIMPLE_GETTER(riak_ce_riakLink, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN);
+    zval *key;
+
+    zval *r;
+
+    zval *bucket_instance;
+
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &r) == FAILURE) {
+        return;
+    }
+
+    object_init_ex(return_value, riak_ce_riakObject);
+
+    if (Z_TYPE_P(r) == IS_NULL) {
+        CALL_METHOD1(riakObject, getObject, return_value, return_value, key);
+    } else {
+        CALL_METHOD2(riakObject, getObject, return_value, return_value, key, r);
+    }
+
 }
 
 PHP_METHOD(riakLink, getTag) {

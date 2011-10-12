@@ -34,6 +34,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_setContentType, 0, 0, 1)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_addLink, 0, 0, 1)
+    ZEND_ARG_INFO(0, key)
 	ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 
@@ -285,6 +286,8 @@ PHP_METHOD(riakObject, setContentType) {
 }
 
 PHP_METHOD(riakObject, addLink) {    
+    zval *key;
+    
     zval *tag;
     
     zval *client_instance;
@@ -299,7 +302,7 @@ PHP_METHOD(riakObject, addLink) {
     HashTable *links_hash;
     HashPosition pointer;    
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &tag) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &key, &tag) == FAILURE) {
         return;
     }
     
@@ -311,9 +314,9 @@ PHP_METHOD(riakObject, addLink) {
     object_init_ex(link_instance, riak_ce_riakLink);
     
     if (Z_TYPE_P(tag) == IS_NULL) {
-        CALL_METHOD3(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, getThis());
+        CALL_METHOD3(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key);
     } else {
-        CALL_METHOD4(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, getThis(), tag);
+        CALL_METHOD4(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key, tag);
     }
     
     /* remove existing equal link if exists */
