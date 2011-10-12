@@ -169,8 +169,18 @@ PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_in
 }
 
 PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, long r, zval *return_value TSRMLS_DC) {
+    long r_setting;
+    zval *r_argument;
+    MAKE_STD_ZVAL(r_argument);
+    
+    r_setting = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
+    
+    ZVAL_LONG(r_argument, r_setting);
+    
     riak_bucket_create_new_object(client_instance, bucket_instance, key, NULL, NULL, return_value TSRMLS_CC);
-    CALL_METHOD1(riakObject, reload, return_value, return_value, riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC));
+    CALL_METHOD1(riakObject, reload, return_value, return_value, r_argument);
+    
+    z_ptr_dtor(&r_argument);
 }
 
 PHPAPI int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
@@ -434,7 +444,7 @@ PHP_METHOD(riakBucket, getProperty) {
     
     zval *client_instance;
     
-    zval *properties = NULL;
+    zval *properties;
     
     int property_found = 0;
     

@@ -420,8 +420,8 @@ PHP_METHOD(riakObject, store) {
     
     bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
     key = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
-    w = riak_bucket_local_or_client_setting(client_instance, bucket_instance, w, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN TSRMLS_CC));
-    dw = riak_bucket_local_or_client_setting(client_instance, bucket_instance, dw, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN TSRMLS_CC));
+    w = riak_bucket_local_or_client_setting(client_instance, bucket_instance, w, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN TSRMLS_CC);
+    dw = riak_bucket_local_or_client_setting(client_instance, bucket_instance, dw, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN TSRMLS_CC);
     
     if (asprintf(&object_url, "%s/%s/%s?w=%ld&dw=%ld", base_address, bucket_name, key, w, dw) < 0) {
         RIAK_MALLOC_WARNING();

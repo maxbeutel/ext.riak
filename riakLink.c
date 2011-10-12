@@ -81,15 +81,15 @@ PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_
     object_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, 0 TSRMLS_CC);
     
 
-    client_id_a = zend_read_property(riak_ce_riakClient, client_instance_a, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC);
-    bucket_name_a = zend_read_property(riak_ce_riakBucket, bucket_instance_a, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
-    key_a = zend_read_property(riak_ce_riakObject, object_instance_a, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC);
-    tag_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC);
+    client_id_a = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance_a, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    bucket_name_a = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance_a, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
+    key_a = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, object_instance_a, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
+    tag_a = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC));
     
-    client_id_b = zend_read_property(riak_ce_riakClient, client_instance_b, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC);
-    bucket_name_b = zend_read_property(riak_ce_riakBucket, bucket_instance_b, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
-    key_b = zend_read_property(riak_ce_riakObject, object_instance_b, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC);
-    tag_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC);
+    client_id_b = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance_b, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    bucket_name_b = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance_b, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
+    key_b = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, object_instance_b, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
+    tag_b = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC));
     
     if (strcmp(client_id_a, client_id_b) != 0) {
         return 0;
