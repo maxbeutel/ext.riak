@@ -288,8 +288,14 @@ PHP_METHOD(riakObject, addLink) {
     zval *client_instance;
     zval *bucket_instance;
     
-    zval *links;
     zval *link_instance;
+    
+    zval *links;
+    
+    zval **data;
+    zval *current_link;
+    HashTable *links_hash;
+    HashPosition pointer;    
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &tag) == FAILURE) {
         return;
@@ -298,8 +304,7 @@ PHP_METHOD(riakObject, addLink) {
 
     client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
-    links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
-    
+        
     MAKE_STD_ZVAL(link_instance);
     object_init_ex(link_instance, riak_ce_riakLink);
     
@@ -310,7 +315,18 @@ PHP_METHOD(riakObject, addLink) {
     }
     
     /* @TODO remove existing link which is equal to this one */
+    links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
+    links_hash = Z_ARRVAL_P(links);
     
+    for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
+        if (Z_TYPE_PP(data) == IS_OBJECT) {
+            current_link = *data;
+            
+            if (riak_link_instances_equal(current_link, link_instance TSRMLS_CC) == SUCCESS) {
+            
+            }
+        }
+    }
     
     add_next_index_zval(links, link_instance);
     

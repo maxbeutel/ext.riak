@@ -26,4 +26,6 @@ PHP_METHOD(riakLink, getObject);
 
 PHP_METHOD(riakLink, getTag);
 
+PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_b TSRMLS_DC);
+
 #endif
