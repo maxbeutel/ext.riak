@@ -169,6 +169,8 @@ PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_in
 }
 
 PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, long r, zval *return_value TSRMLS_DC) {
+    /* @TODO this is ugly converting long value back to zval... make helper function for reloading object which is called here and in riakObject::reload() ? */
+    
     long r_setting;
     zval *r_argument;
     MAKE_STD_ZVAL(r_argument);
@@ -180,7 +182,7 @@ PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instanc
     riak_bucket_create_new_object(client_instance, bucket_instance, key, NULL, NULL, return_value TSRMLS_CC);
     CALL_METHOD1(riakObject, reload, return_value, return_value, r_argument);
     
-    z_ptr_dtor(&r_argument);
+    zval_ptr_dtor(&r_argument);
 }
 
 PHPAPI int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
