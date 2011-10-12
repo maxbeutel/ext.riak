@@ -128,7 +128,6 @@ void riak_init_riakObject(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
-    zend_declare_property_bool(riak_ce_riakObject, RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 0, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC); 
     zend_declare_property_null(riak_ce_riakObject, RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);
@@ -277,14 +276,7 @@ PHP_METHOD(riakObject, setContentType) {
     
     headers = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_HEADERS, RIAK_OBJECT_HEADERS_LEN, 0 TSRMLS_CC);
     add_assoc_stringl(headers, RIAK_OBJECT_HEADER_CONTENTTYPE, content_type, content_type_len, 1);
-    
-    /* @TODO check if jsonize prop is actually needed */
-    if (strcmp(content_type, RIAK_OBJECT_JSON_CONTENTTYPE) == 0) {
-        zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 1 TSRMLS_CC);
-    } else {
-        zend_update_property_bool(riak_ce_riakObject, getThis(), RIAK_OBJECT_JSONIZE, RIAK_OBJECT_JSONIZE_LEN, 0 TSRMLS_CC);
-    }
-    
+        
     RIAK_RETURN_SELF();
 }
 
