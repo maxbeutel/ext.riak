@@ -55,6 +55,7 @@ PHP_METHOD(riakObject, setContentType);
 
 PHP_METHOD(riakObject, addLink);
 PHP_METHOD(riakObject, removeLink);
+PHP_METHOD(riakObject, removeLinkByTag);
 PHP_METHOD(riakObject, getLinks);
 
 PHP_METHOD(riakObject, store);

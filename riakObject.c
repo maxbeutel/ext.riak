@@ -40,6 +40,9 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_removeLink, 0, 0, 1)
 	ZEND_ARG_INFO(0, link)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_removeLinkByTag, 0, 0, 1)
 	ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 
@@ -91,6 +94,7 @@ static function_entry riakObject_methods[] = {
     
     PHP_ME(riakObject, addLink, arginfo_riakObject_addLink, ZEND_ACC_PUBLIC)
     PHP_ME(riakObject, removeLink, arginfo_riakObject_removeLink, ZEND_ACC_PUBLIC)
+    PHP_ME(riakObject, removeLinkByTag, arginfo_riakObject_removeLinkByTag, ZEND_ACC_PUBLIC)
     PHP_ME(riakObject, getLinks, NULL, ZEND_ACC_PUBLIC)   
     
     PHP_ME(riakObject, store, arginfo_riakObject_store, ZEND_ACC_PUBLIC)
@@ -342,6 +346,14 @@ PHP_METHOD(riakObject, addLink) {
 }
 
 PHP_METHOD(riakObject, removeLink) {
+    zval *arg;
+    /* can be a link instance or an array of link instances */
+}
+
+PHP_METHOD(riakObject, removeLinkByTag) {
+    zval *arg;
+    /* can be a tag or an array of tags */
+    
 }
 
 PHP_METHOD(riakObject, getLinks) {
@@ -592,9 +604,11 @@ PHP_METHOD(riakObject, delete) {
 }
 
 PHP_METHOD(riakObject, clear) {
+    /* do we actually need this? */
 }
 
 PHP_METHOD(riakObject, vclock) {
+    /* do we actually need this? */
 }
 
 PHP_METHOD(riakObject, populate) {
@@ -602,6 +616,7 @@ PHP_METHOD(riakObject, populate) {
 }
 
 PHP_METHOD(riakObject, populateLinks) {
+    /* do we actually need this? */
 }
 
 PHP_METHOD(riakObject, hasSiblings) {
