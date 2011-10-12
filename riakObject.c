@@ -288,24 +288,33 @@ PHP_METHOD(riakObject, addLink) {
     zval *client_instance;
     zval *bucket_instance;
     
+    zval *links;
+    zval *link_instance;
+    
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &tag) == FAILURE) {
         return;
     }
     
+
     client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
+    links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
     
-    object_init_ex(return_value, riak_ce_riakLink);
+    MAKE_STD_ZVAL(link_instance);
+    object_init_ex(link_instance, riak_ce_riakLink);
     
     if (Z_TYPE_P(tag) == IS_NULL) {
-        CALL_METHOD3(riakLink, __construct, return_value, return_value, client_instance, bucket_instance, key);
+        CALL_METHOD3(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key);
     } else {
-        CALL_METHOD4(riakLink, __construct, return_value, return_value, client_instance, bucket_instance, key, tag);
+        CALL_METHOD4(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key, tag);
     }
     
     /* @TODO remove existing link which is equal to this one */
-    /* @TODO add link to links array */
-    /* @TODO return object instance to caller */
+    
+    
+    add_next_index_zval(links, link_instance);
+    
+    RIAK_RETURN_SELF();
 }
 
 PHP_METHOD(riakObject, removeLink) {
