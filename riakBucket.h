@@ -109,6 +109,8 @@ zend_class_entry *riak_ce_riakBucket;
 #define RIAK_BUCKET_CONSTANT_DW_SIZE sizeof(RIAK_BUCKET_CONSTANT_DW)
 
 
+PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *bucket_instance, long user_value, char *setting_key, int setting_key_len TSRMLS_DC);
+
 
 PHP_METHOD(riakBucket, __construct);
 
@@ -133,5 +135,6 @@ PHP_METHOD(riakBucket, setProperties);
 PHP_METHOD(riakBucket, getProperties);
 
 PHP_METHOD(riakBucket, getKeys);
+
 
 #endif

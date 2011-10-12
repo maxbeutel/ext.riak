@@ -120,6 +120,31 @@ void riak_init_riakBucket(TSRMLS_D) {
     zend_declare_class_constant_string(riak_ce_riakBucket, RIAK_BUCKET_CONSTANT_DW, RIAK_BUCKET_CONSTANT_DW_SIZE, RIAK_BUCKET_PROP_DW TSRMLS_CC);
 }
 
+/* helper method for fetching settings like r, rw etc. either from client or from bucket */
+PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *bucket_instance, long user_value, char *setting_key, int setting_key_len TSRMLS_DC) {
+    zval *client_value;
+    zval *bucket_value;
+
+    
+    if (user_value != 0) {
+        return user_value;
+    }
+   
+    client_value = zend_read_property(riak_ce_riakClient, client_instance, setting_key, setting_key_len, 0 TSRMLS_CC);
+    bucket_value = zend_read_property(riak_ce_riakBucket, bucket_instance, setting_key, setting_key_len, 0 TSRMLS_CC);    
+    
+    if (Z_TYPE_P(bucket_value) == IS_LONG) {
+        return Z_LVAL_P(bucket_value);
+    }
+    
+    if (Z_TYPE_P(client_value) == IS_LONG) {
+        return Z_LVAL_P(client_value);
+    }
+    
+    zend_error(E_WARNING, "Setting neither on client nor bucket found, using default value 0");
+    
+    return 0;
+}
 
 PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_instance, zval *key, zval *content_type, zval *data, zval *return_value TSRMLS_DC) {    
     zval *default_content_type = NULL;
@@ -143,13 +168,9 @@ PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_in
     }    
 }
 
-PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, zval *r, zval *return_value TSRMLS_DC) {
-    zval *bucket_r;
-    
-    bucket_r = zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC);
-    
+PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, long r, zval *return_value TSRMLS_DC) {
     riak_bucket_create_new_object(client_instance, bucket_instance, key, NULL, NULL, return_value TSRMLS_CC);
-    CALL_METHOD1(riakObject, reload, return_value, return_value, (Z_TYPE_P(r) == IS_LONG && Z_LVAL_P(r) > 0 ? r : bucket_r));
+    CALL_METHOD1(riakObject, reload, return_value, return_value, riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC));
 }
 
 PHPAPI int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
@@ -316,19 +337,11 @@ PHP_METHOD(riakBucket, getName) {
 }
 
 PHP_METHOD(riakBucket, getR) {
-    zval *data, *client_instance;
-    
-    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_CLIENT_R, RIAK_CLIENT_R_LEN, 0 TSRMLS_CC);
+    zval *client_instance;
 
-    if (Z_TYPE_P(data) == IS_NULL) {
-        client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-        
-        CALL_METHOD(riakClient, getR, return_value, client_instance);
-    } else {
-        *return_value = *data;
-    
-        zval_copy_ctor(return_value); 
-    }
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+
+    RETURN_LONG(riak_bucket_local_or_client_setting(client_instance, getThis(), 0, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC));
 }
 
 PHP_METHOD(riakBucket, setR) {
@@ -344,19 +357,11 @@ PHP_METHOD(riakBucket, setR) {
 }
 
 PHP_METHOD(riakBucket, getW) {
-    zval *data, *client_instance;
-    
-    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_CLIENT_W, RIAK_CLIENT_W_LEN, 0 TSRMLS_CC);
+    zval *client_instance;
 
-    if (Z_TYPE_P(data) == IS_NULL) {
-        client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-        
-        CALL_METHOD(riakClient, getW, return_value, client_instance);
-    } else {
-        *return_value = *data;
-    
-        zval_copy_ctor(return_value); 
-    }
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+
+    RETURN_LONG(riak_bucket_local_or_client_setting(client_instance, getThis(), 0, RIAK_CLIENT_W, RIAK_CLIENT_W_LEN TSRMLS_CC));
 }
 
 PHP_METHOD(riakBucket, setW) {  
@@ -372,19 +377,11 @@ PHP_METHOD(riakBucket, setW) {
 }
 
 PHP_METHOD(riakBucket, getDW) {
-    zval *data, *client_instance;
-    
-    data = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN, 0 TSRMLS_CC);
+    zval *client_instance;
 
-    if (Z_TYPE_P(data) == IS_NULL) {
-        client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-        
-        CALL_METHOD(riakClient, getDW, return_value, client_instance);
-    } else {
-        *return_value = *data;
-    
-        zval_copy_ctor(return_value); 
-    }
+    client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
+
+    RETURN_LONG(riak_bucket_local_or_client_setting(client_instance, getThis(), 0, RIAK_CLIENT_DW, RIAK_CLIENT_DW_LEN TSRMLS_CC));
 }
 
 PHP_METHOD(riakBucket, setDW) {
@@ -418,11 +415,11 @@ PHP_METHOD(riakBucket, newObject) {
 PHP_METHOD(riakBucket, getObject) {
     zval *key;
 
-    zval *r;
+    long r = 0;
     
     zval *client_instance;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &r) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|l", &key, &r) == FAILURE) {
         return;
     }
     
