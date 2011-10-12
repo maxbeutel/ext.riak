@@ -7,8 +7,8 @@ zend_class_entry *riak_ce_riakLink;
 #define RIAK_LINK_BUCKET "bucket"
 #define RIAK_LINK_BUCKET_LEN strlen(RIAK_LINK_BUCKET)
 
-#define RIAK_LINK_KEY "key"
-#define RIAK_LINK_KEY_LEN strlen(RIAK_LINK_KEY)
+#define RIAK_LINK_OBJECT "object"
+#define RIAK_LINK_OBJECT_LEN strlen(RIAK_LINK_OBJECT)
 
 #define RIAK_LINK_TAG "tag"
 #define RIAK_LINK_TAG_LEN strlen(RIAK_LINK_TAG)
