@@ -52,10 +52,10 @@ void riak_init_riakLink(TSRMLS_D) {
     zend_declare_property_null(riak_ce_riakLink, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, ZEND_ACC_PROTECTED TSRMLS_CC);    
 }
 
-/* buckets equal if client is equal, bucket name is equal, key is equal and tag is equal */
 PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_b TSRMLS_DC) {
     zval *client_instance_a;
     zval *bucket_instance_a;
+    zval *object_instance_a;
     
     char *client_id_a;
     char *bucket_name_a;
@@ -64,6 +64,7 @@ PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_
     
     zval *client_instance_b;
     zval *bucket_instance_b;
+    zval *object_instance_b;
     
     char *client_id_b;
     char *bucket_name_b;
@@ -73,11 +74,40 @@ PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_
     
     client_instance_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, 0 TSRMLS_CC);
+    object_instance_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, 0 TSRMLS_CC);
     
     client_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, 0 TSRMLS_CC);
+    object_instance_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_OBJECT, RIAK_LINK_OBJECT_LEN, 0 TSRMLS_CC);
     
-    /* @TODO fetch properties, do comparision */
+
+    client_id_a = zend_read_property(riak_ce_riakClient, client_instance_a, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC);
+    bucket_name_a = zend_read_property(riak_ce_riakBucket, bucket_instance_a, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
+    key_a = zend_read_property(riak_ce_riakObject, object_instance_a, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC);
+    tag_a = zend_read_property(riak_ce_riakLink, link_instance_a, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC);
+    
+    client_id_b = zend_read_property(riak_ce_riakClient, client_instance_b, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC);
+    bucket_name_b = zend_read_property(riak_ce_riakBucket, bucket_instance_b, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC);
+    key_b = zend_read_property(riak_ce_riakObject, object_instance_b, RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC);
+    tag_b = zend_read_property(riak_ce_riakLink, link_instance_b, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, 0 TSRMLS_CC);
+    
+    if (strcmp(client_id_a, client_id_b) != 0) {
+        return 0;
+    }
+    
+    if (strcmp(bucket_name_a, bucket_name_b) != 0) {
+        return 0;
+    }
+    
+    if (strcmp(key_a, key_b) != 0) {
+        return 0;
+    }
+    
+    if (strcmp(tag_a, tag_b) != 0) {
+        return 0;
+    }
+    
+    return 1;
 }
 
 PHPAPI int riak_link_create_request_header_str(char **str, zval* client_instance, zval* bucket_instance, zval* object_instance, char* tag, int tag_len TSRMLS_DC) {

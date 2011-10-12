@@ -320,7 +320,7 @@ PHP_METHOD(riakObject, addLink) {
         if (Z_TYPE_PP(data) == IS_OBJECT) {
             current_link = *data;
             
-            if (riak_link_instances_equal(current_link, link_instance TSRMLS_CC) == SUCCESS) {
+            if (riak_link_instances_equal(current_link, link_instance TSRMLS_CC)) {
             
             }
         }
