@@ -312,19 +312,29 @@ PHP_METHOD(riakObject, addLink) {
         CALL_METHOD4(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, getThis(), tag);
     }
     
-    /* @TODO remove existing link which is equal to this one */
+    /* remove existing equal link if exists */
     links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
     links_hash = Z_ARRVAL_P(links);
     
     for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
+        long index;
+        
+        /* fugly, but i dont need key and key_len... */
+        char *_;
+        int __;
+        
+        zend_hash_get_current_key_ex(links_hash, &_, &__, &index, 0, &pointer);
+        
         if (Z_TYPE_PP(data) == IS_OBJECT) {
             current_link = *data;
             
             if (riak_link_instances_equal(current_link, link_instance TSRMLS_CC)) {
-            
+                if (zend_hash_index_del(links_hash, index) == FAILURE) {
+                    php_printf("Removing existing link did not work\n");
+                }
             }
         }
-    }
+    } /* holy arrow code, batman! */
     
     add_next_index_zval(links, link_instance);
     
