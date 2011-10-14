@@ -4,56 +4,56 @@ class RiakClientTest extends PHPUnit_Framework_TestCase
 {
     public function testDefaultValues()
     {
-        $c = new riakClient();
+        $client = new riakClient();
         
-        $this->assertSame(2, $c->getR());
-        $this->assertSame(2, $c->getW());
-        $this->assertSame(2, $c->getDW());
+        $this->assertSame(2, $client->getR());
+        $this->assertSame(2, $client->getW());
+        $this->assertSame(2, $client->getDW());
     }
     
     public function testSimpleSetter()
     {
-        $c = new riakClient();
+        $client = new riakClient();
         
-        $this->assertSame(2, $c->getR());
-        $c->setR(5);
-        $this->assertSame(5, $c->getR());
+        $this->assertSame(2, $client->getR());
+        $client->setR(5);
+        $this->assertSame(5, $client->getR());
         
-        $this->assertSame(2, $c->getW());
-        $c->setW(5);
-        $this->assertSame(5, $c->getW());
+        $this->assertSame(2, $client->getW());
+        $client->setW(5);
+        $this->assertSame(5, $client->getW());
         
-        $this->assertSame(2, $c->getDW());
-        $c->setDW(5);
-        $this->assertSame(5, $c->getDW());
+        $this->assertSame(2, $client->getDW());
+        $client->setDW(5);
+        $this->assertSame(5, $client->getDW());
     }
     
     public function testIsAlive()
     {
-        $c = new riakClient();
-        $this->assertTrue($c->isAlive());
+        $client = new riakClient();
+        $this->assertTrue($client->isAlive());
     }
     
     public function testClientIdDiffersPerInstance()
     {
-        $c1 = new riakClient();
-        $c2 = new riakClient();
+        $client1 = new riakClient();
+        $client2 = new riakClient();
         
-        $this->assertNotSame($c1->getClientId(), $c2->getClientId());
+        $this->assertNotSame($client1->getClientId(), $client2->getClientId());
     }
     
     public function testBuckets()
     {
-        $c = new riakClient();
+        $client = new riakClient();
         
-        $b = $c->buckets();
-        $this->assertSame(3, count($b));   
+        $buckets = $client->buckets();
+        $this->assertSame(3, count($buckets));   
     }
     
     public function testBucket()
     {
-        $c = new riakClient();
-        $b = $c->bucket('Foo');
-        $this->assertInstanceOf('riakBucket', $b);
+        $client = new riakClient();
+        $bucket = $client->bucket('Foo');
+        $this->assertInstanceOf('riakBucket', $bucket);
     }
 }
