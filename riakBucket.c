@@ -2,6 +2,7 @@
 
 #include <ext/spl/php_spl.h>
 #include <ext/json/php_json.h>
+#include <ext/standard/url.h>
 
 #include <curl/curl.h>
 #include <curl/types.h>
