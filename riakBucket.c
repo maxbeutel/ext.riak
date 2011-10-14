@@ -130,10 +130,8 @@ PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *buc
     if (user_value != 0) {
         return user_value;
     }
-    php_printf("Lookin for: %s\n", setting_key);
+
     client_value = zend_read_property(riak_ce_riakClient, client_instance, setting_key, setting_key_len, 0 TSRMLS_CC);
-    
-    /*
     bucket_value = zend_read_property(riak_ce_riakBucket, bucket_instance, setting_key, setting_key_len, 0 TSRMLS_CC);    
     
     if (Z_TYPE_P(bucket_value) == IS_LONG) {
@@ -145,7 +143,7 @@ PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *buc
     }
     
     zend_error(E_WARNING, "Setting neither on client nor bucket found, using default value 0");
-    */
+    
     return 0;
 }
 
