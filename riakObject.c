@@ -402,6 +402,7 @@ PHP_METHOD(riakObject, store) {
         return;
     }
     
+    
     MAKE_STD_ZVAL(content_type_header);
     MAKE_STD_ZVAL(vclock_header);
     
@@ -412,14 +413,15 @@ PHP_METHOD(riakObject, store) {
     /* get content type header */
     riak_object_get_header(getThis(), RIAK_OBJECT_HEADER_CONTENTTYPE, RIAK_OBJECT_HEADER_CONTENTTYPE_SIZE, &content_type_header TSRMLS_CC);
     content_type = Z_STRVAL_P(content_type_header);
-
+    
+    
     /* read data */
     data = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, 0 TSRMLS_CC);
     
     /* construct object url */
     if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
         goto cleanup;
-    }
+    }    
     
     bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
     key = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
@@ -430,8 +432,7 @@ PHP_METHOD(riakObject, store) {
         RIAK_MALLOC_WARNING();
         goto cleanup;
     }
-    
-    
+        
     /* add additional headers */
     request_header = riak_curl_create_request_header();
     
@@ -458,13 +459,9 @@ PHP_METHOD(riakObject, store) {
         
         for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &links_data, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
             if (Z_TYPE_PP(links_data) == IS_OBJECT) {
-                php_printf("Adding link as request header\n");
-
                 link_instance = *links_data;
                 riak_object_add_link_as_request_header(request_header, link_instance TSRMLS_CC);
-            } else {
-                php_printf("Link is no object?!\n");
-            }
+            } 
         }
     }
 
@@ -477,6 +474,8 @@ PHP_METHOD(riakObject, store) {
        if data is not json, add custom content type before sending request
     */
     if (strcmp(content_type, RIAK_OBJECT_JSON_CONTENTTYPE) == 0) {
+        php_printf("Storing object as JSON\n");
+        
         if (zend_is_true(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN, 0 TSRMLS_CC))) {
             if (riak_curl_send_put_json_request(client_id, object_url, data, request_header TSRMLS_CC) == FAILURE) {
                 zend_error(E_WARNING, "Could not update existing object");
@@ -487,21 +486,25 @@ PHP_METHOD(riakObject, store) {
             } 
         }
     } else {
+        php_printf("Storing object as %s\n", content_type);
+        
         if (strlen(content_type) > 0) {
             if (asprintf(&content_type_request_header, "Content-Type: %s", content_type) == FAILURE) {
                 RIAK_MALLOC_WARNING();
                 goto cleanup; 
             }
+            
+            php_printf("Adding custom header: %s\n", content_type_request_header);
         
             riak_curl_add_request_header_str(request_header, content_type_request_header);
         }
         
         if (zend_is_true(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN, 0 TSRMLS_CC))) {
-            if (riak_curl_send_put_request(client_id, object_url, data, request_header TSRMLS_CC) == FAILURE) {
+            if (riak_curl_send_put_request(client_id, object_url, Z_STRVAL_P(data), request_header TSRMLS_CC) == FAILURE) {
                 zend_error(E_WARNING, "Could not update existing object");
             }  
         } else {
-            if (riak_curl_send_post_request(client_id, object_url, data, request_header TSRMLS_CC) == FAILURE) {
+            if (riak_curl_send_post_request(client_id, object_url, Z_STRVAL_P(data), request_header TSRMLS_CC) == FAILURE) {
                 zend_error(E_WARNING, "Could not store object");
             } 
         }
@@ -580,8 +583,6 @@ PHP_METHOD(riakObject, reload) {
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
     if (riak_curl_fetch_json_response(client_id, object_url, &object_data TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
-        php_printf("holen hat mal geklappt\n");
-        
         /* @TODO handle connection errors */
         /* @TODO populate object from response */
     } 

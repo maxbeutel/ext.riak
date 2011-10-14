@@ -175,16 +175,12 @@ PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zva
     return result;
 }
 
-PHPAPI int riak_curl_send_write_request(char *method, char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
+PHPAPI int riak_curl_send_write_request(char *method, char *client_id, char *request_url, char *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
     
     struct curl_slist *headers = NULL;
-
     char *client_id_header = NULL;
-    
-    smart_str buf = {0};
-    char *json_struct;
     
     int result;
     
@@ -197,10 +193,6 @@ PHPAPI int riak_curl_send_write_request(char *method, char *client_id, char *req
         goto cleanup;
     }
     
-    php_json_encode(&buf, data, 0 TSRMLS_CC);
-    
-    json_struct = strndup(buf.c, buf.len);
-    php_printf("json encoded: |%s|\n", json_struct);
 
     curl = curl_easy_init();
     
@@ -223,7 +215,7 @@ PHPAPI int riak_curl_send_write_request(char *method, char *client_id, char *req
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
         }
         
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_struct);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
    
         res = curl_easy_perform(curl);
 
@@ -251,40 +243,53 @@ PHPAPI int riak_curl_send_write_request(char *method, char *client_id, char *req
         free(client_id_header);
     }    
         
-    smart_str_free(&buf);
+    
     
     return result;
 }
 
 PHPAPI int riak_curl_send_post_json_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
-    /* @TODO encode data as JSON here, pass data on to send_write_request */
+    char *json_struct;
+    
+    riak_curl_data_to_json_str(data, &json_struct TSRMLS_CC);
     
     if (request_header) {
         riak_curl_add_request_header_str(request_header, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON);
     }
     
-    return riak_curl_send_write_request("POST", client_id, request_url, data, request_header TSRMLS_CC);
+    return riak_curl_send_write_request("POST", client_id, request_url, json_struct, request_header TSRMLS_CC);
 }
 
 PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
-    /* @TODO encode data as JSON here, pass data on to send_write_request */
+    char *json_struct;
+    
+    riak_curl_data_to_json_str(data, &json_struct TSRMLS_CC);
     
     if (request_header) {
         riak_curl_add_request_header_str(request_header, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON);
     }
     
-    return riak_curl_send_write_request("PUT", client_id, request_url, data, request_header TSRMLS_CC);
+    return riak_curl_send_write_request("PUT", client_id, request_url, json_struct, request_header TSRMLS_CC);
 }
 
-PHPAPI int riak_curl_send_post_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
+PHPAPI int riak_curl_send_post_request(char *client_id, char *request_url, char *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
     return riak_curl_send_write_request("POST", client_id, request_url, data, request_header TSRMLS_CC);
 }
 
-PHPAPI int riak_curl_send_put_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
+PHPAPI int riak_curl_send_put_request(char *client_id, char *request_url, char *data, riakCurlRequestHeader* request_header TSRMLS_DC) {
     return riak_curl_send_write_request("PUT", client_id, request_url, data, request_header TSRMLS_CC);
 }
 
+PHPAPI void riak_curl_data_to_json_str(zval *data, char **json_struct TSRMLS_DC) {
+    smart_str buf = {0};
 
+    php_json_encode(&buf, data, 0 TSRMLS_CC);
+    
+    *json_struct = strndup(buf.c, buf.len);
+    php_printf("json encoded: |%s|\n", json_struct);    
+    
+    smart_str_free(&buf);
+}
 
 
 

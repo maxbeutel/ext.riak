@@ -414,8 +414,8 @@ PHP_METHOD(riakBucket, setDW) {
 
 PHP_METHOD(riakBucket, newObject) {
     zval *key;
-    zval *data;
-    zval *content_type;    
+    zval *data = NULL;
+    zval *content_type = NULL;    
     
     zval *client_instance;
     
