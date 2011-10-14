@@ -16,16 +16,16 @@
 #define RIAK_CURL_WARNING() \
     zend_error(E_WARNING, "Could not initialize request");
 
-#define RIAK_RETURN_SELF() \
-    zval *_current_instance = getThis(); \
+#define RIAK_RETURN_SELF()                  \
+    zval *_current_instance = getThis();    \
     RETURN_ZVAL(_current_instance, 1, 0); 
 
     
 /* macros for returning object properties */
-#define RIAK_CALL_SIMPLE_GETTER(classname, property_name, property_name_len) \
-    zval *data; \
+#define RIAK_CALL_SIMPLE_GETTER(classname, property_name, property_name_len)                        \
+    zval *data;                                                                                     \
     data = zend_read_property(classname, getThis(), property_name, property_name_len, 0 TSRMLS_CC); \
-    *return_value = *data; \
+    *return_value = *data;                                                                          \
     zval_copy_ctor(return_value); 
 
 
@@ -38,32 +38,32 @@
  
 #define CALL_METHOD_BASE(classname, name) zim_##classname##_##name
  
-#define CALL_METHOD_HELPER(classname, name, retval, thisptr, num, param) \
-    PUSH_PARAM(param); PUSH_PARAM((void*)num);                            \
-    PUSH_EO_PARAM();                                                      \
+#define CALL_METHOD_HELPER(classname, name, retval, thisptr, num, param)        \
+    PUSH_PARAM(param); PUSH_PARAM((void*)num);                                  \
+    PUSH_EO_PARAM();                                                            \
     CALL_METHOD_BASE(classname, name)(num, retval, NULL, thisptr, 0 TSRMLS_CC); \
-    POP_EO_PARAM();                       \
+    POP_EO_PARAM();                                                             \
     POP_PARAM(); POP_PARAM();
  
-#define CALL_METHOD(classname, name, retval, thisptr)                  \
+#define CALL_METHOD(classname, name, retval, thisptr)                           \
     CALL_METHOD_BASE(classname, name)(0, retval, NULL, thisptr, 0 TSRMLS_CC);
  
-#define CALL_METHOD1(classname, name, retval, thisptr, param1)         \
+#define CALL_METHOD1(classname, name, retval, thisptr, param1)          \
     CALL_METHOD_HELPER(classname, name, retval, thisptr, 1, param1);
  
-#define CALL_METHOD2(classname, name, retval, thisptr, param1, param2) \
-    PUSH_PARAM(param1);                                                   \
-    CALL_METHOD_HELPER(classname, name, retval, thisptr, 2, param2);     \
+#define CALL_METHOD2(classname, name, retval, thisptr, param1, param2)  \
+    PUSH_PARAM(param1);                                                 \
+    CALL_METHOD_HELPER(classname, name, retval, thisptr, 2, param2);    \
     POP_PARAM();
  
-#define CALL_METHOD3(classname, name, retval, thisptr, param1, param2, param3) \
-    PUSH_PARAM(param1); PUSH_PARAM(param2);                               \
-    CALL_METHOD_HELPER(classname, name, retval, thisptr, 3, param3);     \
+#define CALL_METHOD3(classname, name, retval, thisptr, param1, param2, param3)  \
+    PUSH_PARAM(param1); PUSH_PARAM(param2);                                     \
+    CALL_METHOD_HELPER(classname, name, retval, thisptr, 3, param3);            \
     POP_PARAM(); POP_PARAM();
 
-#define CALL_METHOD4(classname, name, retval, thisptr, param1, param2, param3, param4) \
-    PUSH_PARAM(param1); PUSH_PARAM(param2); PUSH_PARAM(param3);           \
-    CALL_METHOD_HELPER(classname, name, retval, thisptr, 4, param4);     \
+#define CALL_METHOD4(classname, name, retval, thisptr, param1, param2, param3, param4)  \
+    PUSH_PARAM(param1); PUSH_PARAM(param2); PUSH_PARAM(param3);                         \
+    CALL_METHOD_HELPER(classname, name, retval, thisptr, 4, param4);                    \
     POP_PARAM(); POP_PARAM(); POP_PARAM();
   
 #endif  
