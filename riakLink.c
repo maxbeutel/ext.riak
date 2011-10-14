@@ -199,7 +199,6 @@ PHP_METHOD(riakLink, __construct) {
 }
 
 PHP_METHOD(riakLink, getObject) {
-    /* @TODO what if object does not exist? */
     zval *r;
 
     zval *bucket_instance;

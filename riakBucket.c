@@ -429,6 +429,8 @@ PHP_METHOD(riakBucket, newObject) {
 }
 
 PHP_METHOD(riakBucket, getObject) {
+    /* @TODO what if object does not exist? */
+    
     zval *key;
 
     long r = 0;
