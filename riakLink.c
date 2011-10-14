@@ -114,10 +114,7 @@ PHPAPI int riak_link_create_request_header_str(zval* client_instance, zval* buck
     
     char *bucket_name;
     int bucket_name_len;
-    
-    char *key;
-    int key_len;    
-    
+   
     char *prefix_encoded;
     int prefix_encoded_len;
     

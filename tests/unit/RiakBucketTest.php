@@ -31,33 +31,7 @@ class RiakBucketTest extends PHPUnit_Framework_TestCase
         $this->assertNotSame($c->getDW(), $b->getDW());
         $this->assertSame(5, $b->getDW());
     }
-    
-    public function testGetSetNVal()
-    {
-        $c = new riakClient();
-        $b = $c->bucket('__extRiak-bucket_3');
         
-        $this->assertSame(3, $b->getNVal());
-        
-        $b->setNVal(5);
-        $this->assertSame(5, $b->getNVal());
-        
-        $b->setNVal(3);
-    }
-    
-    public function testGetSetAllowMultiples()
-    {
-        $c = new riakClient();
-        $b = $c->bucket('__extRiak-bucket_3');
-        
-        $this->assertFalse($b->getAllowMultiples());
-        
-        $b->setAllowMultiples(true);
-        $this->assertTrue($b->getAllowMultiples());
-        
-        $b->setAllowMultiples(false);
-    }
-    
     public function testGetKeys()
     {
         $c = new riakClient();
@@ -75,7 +49,7 @@ class RiakBucketTest extends PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $p);
     }
     
-    public function testNewObject()
+    public function testNewJsonObject()
     {
         $c = new riakClient();
         $b = $c->bucket('__extRiak-bucket_1');
@@ -90,7 +64,7 @@ class RiakBucketTest extends PHPUnit_Framework_TestCase
     {
         $c = new riakClient();
         $b = $c->bucket('__extRiak-bucket_1');
-        $o = $b->newBinary('key', 'data', 'text/plain');
+        $o = $b->newObject('key', 'data', 'text/plain');
         
         $this->assertInstanceOf('riakObject', $o);
         $this->assertSame('text/plain', $o->getContentType());
