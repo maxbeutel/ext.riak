@@ -13,20 +13,20 @@ class RiakLinkTest extends PHPUnit_Framework_TestCase
     
     public function testCreatingWithTag()
     {
-        $link = new riakLink($this->clientMock, $this->bucketMock, "LINK_TO_KEY", "LINK_TAG");
+        $link = new riakLink($this->clientMock, $this->bucketMock, 'LINK_TO_KEY', 'LINK_TAG');
     }
     
     public function testCreatingWithoutTag()
     {
-        $link = new riakLink($this->clientMock, $this->bucketMock, "LINK_TO_KEY");
+        $link = new riakLink($this->clientMock, $this->bucketMock, 'LINK_TO_KEY');
     }
     
     public function testGetTag()
     {
-        $link = new riakLink($this->clientMock, $this->bucketMock, "LINK_TO_KEY");
+        $link = new riakLink($this->clientMock, $this->bucketMock, 'LINK_TO_KEY');
         $this->assertNull($link->getTag());
         
-        $link = new riakLink($this->clientMock, $this->bucketMock, "LINK_TO_KEY", "LINK_TAG");
-        $this->assertEquals("LINK_TAG", $link->getTag());
+        $link = new riakLink($this->clientMock, $this->bucketMock, 'LINK_TO_KEY', 'LINK_TAG');
+        $this->assertEquals('LINK_TAG', $link->getTag());
     }
 }
