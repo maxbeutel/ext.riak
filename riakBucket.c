@@ -130,8 +130,10 @@ PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *buc
     if (user_value != 0) {
         return user_value;
     }
-   
+    php_printf("Lookin for: %s\n", setting_key);
     client_value = zend_read_property(riak_ce_riakClient, client_instance, setting_key, setting_key_len, 0 TSRMLS_CC);
+    
+    /*
     bucket_value = zend_read_property(riak_ce_riakBucket, bucket_instance, setting_key, setting_key_len, 0 TSRMLS_CC);    
     
     if (Z_TYPE_P(bucket_value) == IS_LONG) {
@@ -143,7 +145,7 @@ PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *buc
     }
     
     zend_error(E_WARNING, "Setting neither on client nor bucket found, using default value 0");
-    
+    */
     return 0;
 }
 
@@ -179,6 +181,7 @@ PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instanc
     MAKE_STD_ZVAL(r_argument);
     
     r_setting = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
+    
     
     ZVAL_LONG(r_argument, r_setting);
     
@@ -421,9 +424,9 @@ PHP_METHOD(riakBucket, newObject) {
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|zz", &key, &data, &content_type) == FAILURE) {
         return;
     }
-            
+      
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-    
+
     riak_bucket_create_new_object(client_instance, getThis(), key, content_type, data, return_value TSRMLS_CC);
 }
 
@@ -439,7 +442,6 @@ PHP_METHOD(riakBucket, getObject) {
     }
     
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-    
     riak_bucket_fetch_object(client_instance, getThis(), key, r, return_value TSRMLS_CC);    
 }
 

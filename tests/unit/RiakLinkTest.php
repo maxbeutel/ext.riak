@@ -29,4 +29,14 @@ class RiakLinkTest extends PHPUnit_Framework_TestCase
         $link = new riakLink($this->clientMock, $this->bucketMock, 'LINK_TO_KEY', 'LINK_TAG');
         $this->assertEquals('LINK_TAG', $link->getTag());
     }
+    
+    public function testGetObject()
+    {
+        $client = new riakClient();
+        $bucket = new riakBucket($client, 'BUCKET_NAME');
+        
+        
+        $link = new riakLink($client, $bucket, 'LINK_TO_KEY');
+        $object = $link->getObject();
+    }
 }

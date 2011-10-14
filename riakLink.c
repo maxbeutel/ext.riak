@@ -23,8 +23,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_construct, 0, 0, 3)
 ZEND_END_ARG_INFO()
 
 RIAK_ARG_INFO
-ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_getObject, 0, 0, 1)
-	ZEND_ARG_INFO(0, key)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_riakLink_getObject, 0, 0, 0)
 	ZEND_ARG_INFO(0, r)
 ZEND_END_ARG_INFO()
 
@@ -200,27 +199,39 @@ PHP_METHOD(riakLink, __construct) {
 }
 
 PHP_METHOD(riakLink, getObject) {
-    zval *key;
-
+    /* @TODO what if object does not exist? */
     zval *r;
 
     zval *bucket_instance;
+    
+    zval *key;
 
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &key, &r) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z", &r) == FAILURE) {
         return;
     }
-
-    object_init_ex(return_value, riak_ce_riakObject);
-
+    
+    bucket_instance = zend_read_property(riak_ce_riakLink, getThis(), RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, 0 TSRMLS_CC);
+    key = zend_read_property(riak_ce_riakLink, getThis(), RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, 0 TSRMLS_CC);
+    
     if (Z_TYPE_P(r) == IS_NULL) {
-        CALL_METHOD1(riakObject, getObject, return_value, return_value, key);
+        CALL_METHOD1(riakBucket, getObject, return_value, bucket_instance, key);
     } else {
-        CALL_METHOD2(riakObject, getObject, return_value, return_value, key, r);
+        CALL_METHOD2(riakBucket, getObject, return_value, bucket_instance, key, r);
     }
-
 }
 
 PHP_METHOD(riakLink, getTag) {
     RIAK_CALL_SIMPLE_GETTER(riak_ce_riakLink, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN);
 }
+
+
+
+
+
+
+
+
+
+
+
