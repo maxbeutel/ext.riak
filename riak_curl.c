@@ -286,7 +286,7 @@ PHPAPI void riak_curl_data_to_json_str(zval *data, char **json_struct TSRMLS_DC)
     php_json_encode(&buf, data, 0 TSRMLS_CC);
     
     *json_struct = strndup(buf.c, buf.len);
-    php_printf("json encoded: |%s|\n", json_struct);    
+    php_printf("json encoded: |%s|\n", *json_struct);    
     
     smart_str_free(&buf);
 }
