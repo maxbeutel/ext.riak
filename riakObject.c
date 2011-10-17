@@ -230,6 +230,15 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
         /* set data property */
         zend_update_property(riak_ce_riakObject, *return_value, RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, object_data TSRMLS_CC);
         
+        
+        if (request_header) {
+            char** iter;
+            
+            for (iter = riak_curl_add_request_header_start(request_header); iter != riak_curl_add_request_header_end(request_header); ++iter) {
+                php_printf("found header: %s\n", *iter);
+            }
+        }
+        
         /* 
             TODO populate result object 
                 - headers (links)
