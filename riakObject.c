@@ -51,10 +51,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_store, 0, 0, 0)
 	ZEND_ARG_INFO(0, dw)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_reload, 0, 0, 0)
-	ZEND_ARG_INFO(0, r)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_riakObject_delete, 0, 0, 0)
 	ZEND_ARG_INFO(0, dw)
 ZEND_END_ARG_INFO()
@@ -98,7 +94,6 @@ static function_entry riakObject_methods[] = {
     PHP_ME(riakObject, getLinks, NULL, ZEND_ACC_PUBLIC)   
     
     PHP_ME(riakObject, store, arginfo_riakObject_store, ZEND_ACC_PUBLIC)
-    PHP_ME(riakObject, reload, arginfo_riakObject_reload, ZEND_ACC_PUBLIC)
     PHP_ME(riakObject, delete, arginfo_riakObject_delete, ZEND_ACC_PUBLIC)
     
     PHP_ME(riakObject, clear, NULL, ZEND_ACC_PROTECTED)
@@ -187,6 +182,71 @@ PHPAPI void riak_object_add_link_as_request_header(riakCurlRequestHeader *reques
     header_str = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, 0 TSRMLS_CC));
     
     riak_curl_add_request_header_str(request_header, header_str);    
+}
+
+PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *bucket_instance, zval *key, zval **return_value, long r TSRMLS_DC) {
+    int result;
+    
+    char *base_address = NULL;
+    
+    char *bucket_name;
+    char *key;
+    
+    char *base_address = NULL;
+    char *object_url = NULL;
+    
+    zval *object_data;
+    MAKE_STD_ZVAL(object_data);
+    
+    
+    
+    /* build object url */
+    if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
+        goto cleanup;
+    }
+    
+    
+    bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
+    key = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
+    r = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
+    
+    if (asprintf(&object_url, "%s/%s/%s?r=%ld", base_address, bucket_name, key, r) < 0) {
+        RIAK_MALLOC_WARNING();
+        goto cleanup;
+    }
+    
+    
+    php_printf("Object url: %s\n", object_url);
+ 
+    /* fetch json response */
+    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
+    
+    if (riak_curl_fetch_json_response(client_id, object_url, &object_data TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
+        result = FAILURE;
+    }     
+    
+    /* create object instance */
+    object_init_ex(return_value, riak_ce_riakObject);
+    CALL_METHOD3(riakObject, __construct, return_value, client_instance, bucket_instance, key);
+    
+    
+    
+    /* TODO populate result object */
+    
+    
+    cleanup:
+    
+    if (base_address) {
+        free(base_address);
+    }
+    
+    if (object_url) {
+        free(object_url);
+    }    
+        
+    zval_ptr_dtor(&object_data);
+    
+    return result;
 }
 
 
@@ -538,6 +598,7 @@ PHP_METHOD(riakObject, store) {
     RIAK_RETURN_SELF();
 }
 
+/*
 PHP_METHOD(riakObject, reload) {
     long r = 0;
     
@@ -564,7 +625,6 @@ PHP_METHOD(riakObject, reload) {
     client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
     bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
     
-    /* build object url */
     if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
         goto cleanup;
     }
@@ -583,8 +643,7 @@ PHP_METHOD(riakObject, reload) {
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
     if (riak_curl_fetch_json_response(client_id, object_url, &object_data TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
-        /* @TODO handle connection errors */
-        /* @TODO populate object from response */
+        
     } 
     
     
@@ -601,6 +660,7 @@ PHP_METHOD(riakObject, reload) {
     
     zval_ptr_dtor(&object_data);
 }
+*/
 
 PHP_METHOD(riakObject, delete) {
     long dw = 0;

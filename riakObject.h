@@ -40,7 +40,12 @@
 
 #define RIAK_OBJECT_JSON_CONTENTTYPE "text/json"
 
+
 zend_class_entry *riak_ce_riakObject;
+
+
+PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *bucket_instance, zval *key, zval **return_value, long r TSRMLS_DC);
+
 
 PHP_METHOD(riakObject, __construct);
 
@@ -62,7 +67,6 @@ PHP_METHOD(riakObject, removeLinkByTag);
 PHP_METHOD(riakObject, getLinks);
 
 PHP_METHOD(riakObject, store);
-PHP_METHOD(riakObject, reload);
 PHP_METHOD(riakObject, delete);
 
 PHP_METHOD(riakObject, clear);
