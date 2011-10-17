@@ -92,6 +92,20 @@ PHPAPI size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurl
     return size * nmemb;
 }
 
+
+PHPAPI void riak_curl_data_to_json_str(zval *data, char **json_struct TSRMLS_DC) {
+    smart_str buf = {0};
+
+    php_json_encode(&buf, data, 0 TSRMLS_CC);
+    
+    *json_struct = strndup(buf.c, buf.len);
+    php_printf("json encoded: |%s|\n", *json_struct);    
+    
+    smart_str_free(&buf);
+}
+
+
+
 PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
@@ -279,16 +293,7 @@ PHPAPI int riak_curl_send_put_request(char *client_id, char *request_url, char *
     return riak_curl_send_write_request("PUT", client_id, request_url, data, request_header TSRMLS_CC);
 }
 
-PHPAPI void riak_curl_data_to_json_str(zval *data, char **json_struct TSRMLS_DC) {
-    smart_str buf = {0};
 
-    php_json_encode(&buf, data, 0 TSRMLS_CC);
-    
-    *json_struct = strndup(buf.c, buf.len);
-    php_printf("json encoded: |%s|\n", *json_struct);    
-    
-    smart_str_free(&buf);
-}
 
 
 

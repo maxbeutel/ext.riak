@@ -184,16 +184,15 @@ PHPAPI void riak_object_add_link_as_request_header(riakCurlRequestHeader *reques
     riak_curl_add_request_header_str(request_header, header_str);    
 }
 
-PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *bucket_instance, zval *key, zval **return_value, long r TSRMLS_DC) {
+PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *bucket_instance, zval *key, long r, zval **return_value TSRMLS_DC) {
     int result;
     
-    char *base_address = NULL;
-    
     char *bucket_name;
-    char *key;
     
     char *base_address = NULL;
     char *object_url = NULL;
+    
+    char *client_id = NULL;
     
     zval *object_data;
     MAKE_STD_ZVAL(object_data);
@@ -207,10 +206,9 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     
     
     bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
-    key = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
     r = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
     
-    if (asprintf(&object_url, "%s/%s/%s?r=%ld", base_address, bucket_name, key, r) < 0) {
+    if (asprintf(&object_url, "%s/%s/%s?r=%ld", base_address, bucket_name, Z_STRVAL_P(key), r) < 0) {
         RIAK_MALLOC_WARNING();
         goto cleanup;
     }
@@ -226,12 +224,12 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     }     
     
     /* create object instance */
-    object_init_ex(return_value, riak_ce_riakObject);
-    CALL_METHOD3(riakObject, __construct, return_value, client_instance, bucket_instance, key);
+    object_init_ex(*return_value, riak_ce_riakObject); 
+    CALL_METHOD3(riakObject, __construct, *return_value, *return_value, client_instance, bucket_instance, key);
     
-    
-    
+
     /* TODO populate result object */
+    
     
     
     cleanup:

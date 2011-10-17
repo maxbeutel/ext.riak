@@ -44,7 +44,7 @@
 zend_class_entry *riak_ce_riakObject;
 
 
-PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *bucket_instance, zval *key, zval **return_value, long r TSRMLS_DC);
+PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *bucket_instance, zval *key, long r, zval **return_value TSRMLS_DC);
 
 
 PHP_METHOD(riakObject, __construct);

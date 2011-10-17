@@ -171,24 +171,6 @@ PHPAPI void riak_bucket_create_new_object(zval *client_instance, zval *bucket_in
     }    
 }
 
-PHPAPI void riak_bucket_fetch_object(zval *client_instance, zval *bucket_instance, zval *key, long r, zval *return_value TSRMLS_DC) {
-    /* @TODO this is ugly converting long value back to zval... make helper function for reloading object which is called here and in riakObject::reload() ? */
-    
-    long r_setting;
-    zval *r_argument;
-    MAKE_STD_ZVAL(r_argument);
-    
-    r_setting = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
-    
-    
-    ZVAL_LONG(r_argument, r_setting);
-    
-    riak_bucket_create_new_object(client_instance, bucket_instance, key, NULL, NULL, return_value TSRMLS_CC);
-    CALL_METHOD1(riakObject, reload, return_value, return_value, r_argument);
-    
-    zval_ptr_dtor(&r_argument);
-}
-
 PHPAPI int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_instance, zval **return_value TSRMLS_DC) {
     char *base_address = NULL;
     char *bucket_properties_url = NULL;
@@ -429,8 +411,6 @@ PHP_METHOD(riakBucket, newObject) {
 }
 
 PHP_METHOD(riakBucket, getObject) {
-    /* @TODO what if object does not exist? */
-    
     zval *key;
 
     long r = 0;
@@ -442,7 +422,15 @@ PHP_METHOD(riakBucket, getObject) {
     }
     
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-    riak_bucket_fetch_object(client_instance, getThis(), key, r, return_value TSRMLS_CC);    
+
+    /*
+   warning: passing argument 4 of ‘riak_object_fetch_initialized_object’ makes pointer from integer without a cast
+    */
+    
+    if (riak_object_fetch_initialized_object(client_instance, getThis(), key, r, &return_value TSRMLS_CC) == FAILURE) {
+        zend_error(E_WARNING, "fetching object failed");
+        RETURN_NULL();
+    }
 }
 
 PHP_METHOD(riakBucket, getProperty) {
