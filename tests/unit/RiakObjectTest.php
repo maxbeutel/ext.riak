@@ -8,6 +8,7 @@ class RiakObjectTest extends PHPUnit_Framework_TestCase
         $bucket = $client->bucket('__extRiak-bucket_2');
         $object = $bucket->getObject('key_1');
         
+        $this->assertInstanceOf('riakObject', $object);
         $this->assertFalse($object->hasSiblings());
         $this->assertSame(0, $object->getSiblingCount());
     }

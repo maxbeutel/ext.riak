@@ -210,6 +210,7 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     
     if (asprintf(&object_url, "%s/%s/%s?r=%ld", base_address, bucket_name, Z_STRVAL_P(key), r) < 0) {
         RIAK_MALLOC_WARNING();
+        result = FAILURE;
         goto cleanup;
     }
     
@@ -220,8 +221,10 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
     if (riak_curl_fetch_json_response(client_id, object_url, &object_data TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
+        result = SUCCESS;
+    } else {
         result = FAILURE;
-    }     
+    }
     
     /* create object instance */
     object_init_ex(*return_value, riak_ce_riakObject); 

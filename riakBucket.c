@@ -422,10 +422,6 @@ PHP_METHOD(riakBucket, getObject) {
     }
     
     client_instance = zend_read_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, 0 TSRMLS_CC);
-
-    /*
-   warning: passing argument 4 of ‘riak_object_fetch_initialized_object’ makes pointer from integer without a cast
-    */
     
     if (riak_object_fetch_initialized_object(client_instance, getThis(), key, r, &return_value TSRMLS_CC) == FAILURE) {
         zend_error(E_WARNING, "fetching object failed");
