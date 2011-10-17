@@ -235,7 +235,22 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
             char** iter;
             
             for (iter = riak_curl_add_request_header_start(request_header); iter != riak_curl_add_request_header_end(request_header); ++iter) {
-                php_printf("found header: %s\n", *iter);
+                /* link */
+                if (strncmp(*iter, "Link:", strlen("Link:")) == 0) {
+                    php_printf("Found Link: %s\n", *iter);
+                }
+                
+                /* header: content type */
+                else if (strncmp(*iter, "Content-Type:", strlen("Content-Type:")) == 0) {
+                    php_printf("Found Content Type: %s\n", *iter);
+                }
+                
+                /* header: vclock */
+                else if (strncmp(*iter, "X-Riak-Vclock", strlen("X-Riak-Vclock")) == 0) {
+                    php_printf("Found Vclock: %s\n", *iter);
+                }
+                
+                /* discard all other headers */
             }
         }
         
