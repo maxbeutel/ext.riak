@@ -268,7 +268,7 @@ PHP_METHOD(riakClient, isAlive) {
     /* build client id header */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, getThis(), RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
-    if (riak_curl_fetch_response(client_id, ping_url, &status TSRMLS_CC) == SUCCESS) {
+    if (riak_curl_fetch_response(client_id, ping_url, &status, NULL TSRMLS_CC) == SUCCESS) {
         comparision_res = strcmp(status, status_ok);
     } else {
         comparision_res = -1;
@@ -335,7 +335,7 @@ PHP_METHOD(riakClient, buckets) {
     
     MAKE_STD_ZVAL(buckets);
     
-    if (riak_curl_fetch_json_response(client_id, bucket_list_url, &buckets TSRMLS_CC) == SUCCESS) {
+    if (riak_curl_fetch_json_response(client_id, bucket_list_url, &buckets, NULL TSRMLS_CC) == SUCCESS) {
         array_init(return_value);
         
         /* search "buckets" key */

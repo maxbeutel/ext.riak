@@ -17,8 +17,8 @@ PHPAPI int riak_curl_add_request_header_str(riakCurlRequestHeader* request_heade
 PHPAPI char** riak_curl_add_request_header_start(riakCurlRequestHeader* request_header);
 PHPAPI char** riak_curl_add_request_header_end(riakCurlRequestHeader* request_header);
 
-PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response TSRMLS_DC);
-PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC);
+PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response, riakCurlRequestHeader *response_headers TSRMLS_DC);
+PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body, riakCurlRequestHeader *response_headers TSRMLS_DC);
 
 PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC);
 PHPAPI int riak_curl_send_post_json_request(char *client_id, char *request_url, zval *data, riakCurlRequestHeader* request_header TSRMLS_DC);

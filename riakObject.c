@@ -220,13 +220,13 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     /* fetch json response */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
-    if (riak_curl_fetch_json_response(client_id, object_url, &object_data TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
+    if (riak_curl_fetch_json_response(client_id, object_url, &object_data, NULL TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
         /* create object instance */
         object_init_ex(*return_value, riak_ce_riakObject); 
         CALL_METHOD3(riakObject, __construct, *return_value, *return_value, client_instance, bucket_instance, key);
         
         /* set data property */
-        zend_update_property(riak_ce_riakObject, riakObject, RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, object_data TSRMLS_CC);
+        zend_update_property(riak_ce_riakObject, *return_value, RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, object_data TSRMLS_CC);
         
         /* 
             TODO populate result object 
@@ -605,70 +605,6 @@ PHP_METHOD(riakObject, store) {
     
     RIAK_RETURN_SELF();
 }
-
-/*
-PHP_METHOD(riakObject, reload) {
-    long r = 0;
-    
-    zval *bucket_instance;
-    zval *client_instance;
-    
-    char *client_id;
-    
-    char *bucket_name;
-    char *key;
-    
-    char *base_address = NULL;
-    char *object_url = NULL;
-    
-    zval *object_data = NULL;
-
-    
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &r) == FAILURE) {
-        return;
-    }
-    
-    MAKE_STD_ZVAL(object_data); 
-    
-    client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
-    bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
-    
-    if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
-        goto cleanup;
-    }
-    
-    bucket_name = Z_STRVAL_P(zend_read_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, 0 TSRMLS_CC));
-    key = Z_STRVAL_P(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_KEY, RIAK_OBJECT_KEY_LEN, 0 TSRMLS_CC));
-    r = riak_bucket_local_or_client_setting(client_instance, bucket_instance, r, RIAK_CLIENT_R, RIAK_CLIENT_R_LEN TSRMLS_CC);
-    
-    if (asprintf(&object_url, "%s/%s/%s?r=%ld", base_address, bucket_name, key, r) < 0) {
-        RIAK_MALLOC_WARNING();
-        goto cleanup;
-    }
-    
-    php_printf("Object url: %s\n", object_url);
-    
-    client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
-    
-    if (riak_curl_fetch_json_response(client_id, object_url, &object_data TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
-        
-    } 
-    
-    
-    
-    cleanup:
-        
-    if (base_address) {
-        free(base_address);
-    }
-    
-    if (object_url) {
-        free(object_url);
-    }
-    
-    zval_ptr_dtor(&object_data);
-}
-*/
 
 PHP_METHOD(riakObject, delete) {
     long dw = 0;

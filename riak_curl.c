@@ -71,22 +71,22 @@ PHPAPI char** riak_curl_add_request_header_end(riakCurlRequestHeader* request_he
 
 
 typedef struct {
-    char *response_body;
+    char *str;
     size_t len;
 } riakCurlResponse;
 
 PHPAPI void riak_curl_response_init(riakCurlResponse *s) {
     s->len = 0;
-    s->response_body = emalloc(s->len + 1);
-    s->response_body[0] = '\0';
+    s->str = emalloc(s->len + 1);
+    s->str[0] = '\0';
 }
 
 PHPAPI size_t riak_curl_writefunc(void *ptr, size_t size, size_t nmemb, riakCurlResponse *s) {
     size_t new_len = s->len + size * nmemb;
-    s->response_body = erealloc(s->response_body, new_len + 1);
+    s->str = erealloc(s->str, new_len + 1);
     
-    memcpy(s->response_body + s->len, ptr, size*nmemb);
-    s->response_body[new_len] = '\0';
+    memcpy(s->str + s->len, ptr, size*nmemb);
+    s->str[new_len] = '\0';
     s->len = new_len;
     
     return size * nmemb;
@@ -106,13 +106,14 @@ PHPAPI void riak_curl_data_to_json_str(zval *data, char **json_struct TSRMLS_DC)
 
 
 
-PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body TSRMLS_DC) {
+PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body, riakCurlRequestHeader *response_headers TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
     
     struct curl_slist *headers = NULL;
-    riakCurlResponse response;   
-    
+    riakCurlResponse response_body_content;   
+    riakCurlResponse response_headers_content;  
+        
     char *client_id_header = NULL;
       
     int result;
@@ -127,25 +128,50 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
     curl = curl_easy_init();
     
     if (curl) {
-        riak_curl_response_init(&response);
+        riak_curl_response_init(&response_body_content);
+        
+        if (response_headers) {
+            riak_curl_response_init(&response_headers_content);
+        }
+        
         
         headers = curl_slist_append(headers, client_id_header);
         
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
         curl_easy_setopt(curl, CURLOPT_URL, request_url);        
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
         
+        /* store response headers if needed */
+        if (response_headers) {
+            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, riak_curl_writefunc); 
+            curl_easy_setopt(curl, CURLOPT_WRITEHEADER, &response_headers_content);
+        }
+
+        /* store response body */
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, riak_curl_writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_body_content);
+        
+
         res = curl_easy_perform(curl);
         
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
         
-        asprintf(response_body, "%s", response.response_body);
+        asprintf(response_body, "%s", response_body_content.str);
 
-        php_printf("JSON response: %s\n", response.response_body);
         
-        efree(response.response_body);  
+        /* output some debug info */
+        if (response_headers) {
+            php_printf("Response header: %s\n", response_headers_content.str);
+        }
+        
+        php_printf("JSON response: %s\n", response_body_content.str);
+              
+        
+        efree(response_body_content.str);  
+        
+        if (response_headers) {
+            efree(response_headers_content.str);
+        }
         
         result = SUCCESS;
     } else {
@@ -164,14 +190,14 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
     return result;
 }
 
-PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response TSRMLS_DC) {
+PHPAPI int riak_curl_fetch_json_response(char *client_id, char *request_url, zval **json_response, riakCurlRequestHeader *response_headers TSRMLS_DC) {
     char *response = NULL;
     
     zval *tmp = NULL;
     
     int result;
     
-    if (riak_curl_fetch_response(client_id, request_url, &response TSRMLS_CC) == SUCCESS) {
+    if (riak_curl_fetch_response(client_id, request_url, &response, response_headers TSRMLS_CC) == SUCCESS) {
         tmp = *json_response;
         
         php_json_decode(tmp, response, strlen(response), 1, 20 TSRMLS_CC);

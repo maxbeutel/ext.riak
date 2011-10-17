@@ -201,7 +201,7 @@ PHPAPI int riak_bucket_fetch_properties(zval *client_instance, zval *bucket_inst
     
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
 
-    if (riak_curl_fetch_json_response(client_id, bucket_properties_url, &properties TSRMLS_CC) == SUCCESS) {
+    if (riak_curl_fetch_json_response(client_id, bucket_properties_url, &properties, NULL TSRMLS_CC) == SUCCESS) {
         /* search "props" key, assign as return value */
         zval **properties_array = NULL;
         
@@ -553,7 +553,7 @@ PHP_METHOD(riakBucket, getKeys) {
     
     MAKE_STD_ZVAL(keys);
     
-    if (riak_curl_fetch_json_response(client_id, bucket_keys_url, &keys TSRMLS_CC) == SUCCESS) {
+    if (riak_curl_fetch_json_response(client_id, bucket_keys_url, &keys, NULL TSRMLS_CC) == SUCCESS) {
         array_init(return_value);
         
         /* search "keys" key */
