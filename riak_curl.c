@@ -106,16 +106,21 @@ PHPAPI void riak_curl_data_to_json_str(zval *data, char **json_struct TSRMLS_DC)
 
 
 
-PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body, riakCurlRequestHeader *response_headers TSRMLS_DC) {
+PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **response_body, riakCurlRequestHeader *response_header TSRMLS_DC) {
     CURL *curl;
     CURLcode res;
     
     struct curl_slist *headers = NULL;
     riakCurlResponse response_body_content;   
-    riakCurlResponse response_headers_content;  
+    riakCurlResponse response_header_content;  
         
     char *client_id_header = NULL;
-      
+    
+    char *response_header_copy = NULL;
+    char *header_line = NULL;
+    
+    char *last;
+    
     int result;
     
     
@@ -130,8 +135,8 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
     if (curl) {
         riak_curl_response_init(&response_body_content);
         
-        if (response_headers) {
-            riak_curl_response_init(&response_headers_content);
+        if (response_header) {
+            riak_curl_response_init(&response_header_content);
         }
         
         
@@ -141,9 +146,9 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
         curl_easy_setopt(curl, CURLOPT_URL, request_url);        
         
         /* store response headers if needed */
-        if (response_headers) {
+        if (response_header) {
             curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, riak_curl_writefunc); 
-            curl_easy_setopt(curl, CURLOPT_WRITEHEADER, &response_headers_content);
+            curl_easy_setopt(curl, CURLOPT_WRITEHEADER, &response_header_content);
         }
 
         /* store response body */
@@ -155,13 +160,25 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
         
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
-        
+
         asprintf(response_body, "%s", response_body_content.str);
 
+        /* parse headers in array struct */
+        /* @FIXME uhm, do we need to copy headerline? Is this freed when response_headers is destroyed? */
+        if (response_header) {
+            asprintf(&response_header_copy, "%s", response_header_content.str);
+            
+            while (header_line = strtok_r(response_header_copy, "\r\n", &last)) {
+                riak_curl_add_request_header_str(response_header, header_line);
+                
+                response_header_copy = last;
+            }
+        }
         
+
         /* output some debug info */
-        if (response_headers) {
-            php_printf("Response header: %s\n", response_headers_content.str);
+        if (response_header) {
+            php_printf("Response header: %s\n", response_header_content.str);
         }
         
         php_printf("JSON response: %s\n", response_body_content.str);
@@ -169,8 +186,8 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
         
         efree(response_body_content.str);  
         
-        if (response_headers) {
-            efree(response_headers_content.str);
+        if (response_header) {
+            efree(response_header_content.str);
         }
         
         result = SUCCESS;
@@ -182,7 +199,7 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
     
     
     cleanup:
-        
+                
     if (client_id_header) {
         free(client_id_header);
     }

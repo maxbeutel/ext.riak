@@ -197,6 +197,8 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     zval *object_data;
     MAKE_STD_ZVAL(object_data);
     
+    riakCurlRequestHeader *request_header;
+    request_header = riak_curl_create_request_header();
     
     
     /* build object url */
@@ -220,7 +222,7 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     /* fetch json response */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
     
-    if (riak_curl_fetch_json_response(client_id, object_url, &object_data, NULL TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
+    if (riak_curl_fetch_json_response(client_id, object_url, &object_data, request_header TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
         /* create object instance */
         object_init_ex(*return_value, riak_ce_riakObject); 
         CALL_METHOD3(riakObject, __construct, *return_value, *return_value, client_instance, bucket_instance, key);
@@ -253,6 +255,10 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     }    
         
     zval_ptr_dtor(&object_data);
+    
+    if (request_header) {
+        riak_curl_delete_request_header(request_header);
+    }
     
     return result;
 }
