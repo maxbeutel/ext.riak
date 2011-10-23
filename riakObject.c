@@ -442,9 +442,11 @@ PHP_METHOD(riakObject, setContentType) {
 }
 
 PHP_METHOD(riakObject, addLink) {    
-    zval *key;
+    char *key;
+    int key_len;
     
-    zval *tag;
+    char *tag = NULL;
+    int tag_len;
     
     zval *client_instance;
     zval *bucket_instance;
@@ -458,7 +460,7 @@ PHP_METHOD(riakObject, addLink) {
     HashTable *links_hash;
     HashPosition pointer;    
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &key, &tag) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &key, &key_len, &tag, &tag_len) == FAILURE) {
         return;
     }
     
@@ -468,13 +470,8 @@ PHP_METHOD(riakObject, addLink) {
         
     MAKE_STD_ZVAL(link_instance);
     object_init_ex(link_instance, riak_ce_riakLink);
-    
-    /* @TODO use __constructor helper */
-    if (Z_TYPE_P(tag) == IS_NULL) {
-        CALL_METHOD3(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key);
-    } else {
-        CALL_METHOD4(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key, tag);
-    }
+   
+    riak_link__constructor(link_instance, client_instance, bucket_instance, key, key_len, tag, tag_len TSRMLS_CC);
     
     /* remove existing equal link if exists */
     links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
