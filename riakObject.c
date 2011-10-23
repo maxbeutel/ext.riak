@@ -241,6 +241,8 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     riakCurlRequestHeader *request_header;
     request_header = riak_curl_create_request_header();
     
+    zval *links;
+    
     
     /* build object url */
     if (riak_client_base_address(client_instance, 1, &base_address TSRMLS_CC) == FAILURE) {
@@ -275,6 +277,8 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
         if (request_header) {
             char** iter;
             
+            links = zend_read_property(riak_ce_riakObject, *return_value, RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
+            
             for (iter = riak_curl_add_request_header_start(request_header); iter != riak_curl_add_request_header_end(request_header); ++iter) {
                 /* link  */
                 if (strncmp(*iter, "Link:", strlen("Link:")) == 0) {
@@ -283,11 +287,11 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
                     object_init_ex(link_instance, riak_ce_riakLink); 
                     
                     if (riak_link_create_link_instance_from_raw_string(client_instance, *iter, strlen(*iter), &link_instance TSRMLS_CC) == SUCCESS) {
-                        /* @TODO factor out helper function from addLink(), use that one to add link instance */
-                    }
-                    
-                    // DEBUG:
-                    zval_ptr_dtor(&link_instance);
+                        add_next_index_zval(links, link_instance);
+                    /* @FIXME is this ok to only free link instance when creation failed? */    
+                    } else {
+                        zval_ptr_dtor(&link_instance);
+                    }  
                 }
                 
                 /* header: content type */
@@ -311,8 +315,8 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
         
         /* 
             TODO populate result object 
-                - headers (links)
                 - siblings (?)
+                - handle status 300 multiple choice
         */
         
         result = SUCCESS;
