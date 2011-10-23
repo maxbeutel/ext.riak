@@ -4,10 +4,6 @@
 #include <ext/json/php_json.h>
 #include <ext/standard/url.h>
 
-#include <curl/curl.h>
-#include <curl/types.h>
-#include <curl/easy.h>
-
 #include "riak_shared.h"
 #include "riak_curl.h"
 #include "riakClient.h"
