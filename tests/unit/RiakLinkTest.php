@@ -33,10 +33,10 @@ class RiakLinkTest extends PHPUnit_Framework_TestCase
     public function testGetObject()
     {
         $client = new riakClient();
-        $bucket = new riakBucket($client, 'BUCKET_NAME');
+        $bucket = new riakBucket($client, '__extRiak-bucket_1');
         
         
-        $link = new riakLink($client, $bucket, 'LINK_TO_KEY');
+        $link = new riakLink($client, $bucket, 'key_1');
         $object = $link->getObject();
         $this->assertInstanceOf('riakObject', $object);
     }
