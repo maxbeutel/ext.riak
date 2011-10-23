@@ -283,7 +283,7 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
                     object_init_ex(link_instance, riak_ce_riakLink); 
                     
                     if (riak_link_create_link_instance_from_raw_string(client_instance, *iter, strlen(*iter), &link_instance TSRMLS_CC) == SUCCESS) {
-                        //
+                        /* @TODO factor out helper function from addLink(), use that one to add link instance */
                     }
                     
                     // DEBUG:
@@ -465,6 +465,7 @@ PHP_METHOD(riakObject, addLink) {
     MAKE_STD_ZVAL(link_instance);
     object_init_ex(link_instance, riak_ce_riakLink);
     
+    /* @TODO use __constructor helper */
     if (Z_TYPE_P(tag) == IS_NULL) {
         CALL_METHOD3(riakLink, __construct, link_instance, link_instance, client_instance, bucket_instance, key);
     } else {

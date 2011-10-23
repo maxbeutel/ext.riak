@@ -181,7 +181,9 @@ PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance,
     int tag_parts_len = 2;
     int current_tag_part = 0;
     
-    
+    zval *bucket_instance;
+    MAKE_STD_ZVAL(bucket_instance);
+ 
     
     if (asprintf(&header_str_copy, "%s", header_str) < 0) {
         RIAK_MALLOC_WARNING();
@@ -216,6 +218,7 @@ PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance,
     
     
     /* debug */
+    /*
     if (tag_parts[0]) {
         php_printf("tag key: %s\n", tag_parts[0]);
     }
@@ -236,23 +239,54 @@ PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance,
     if (object_address_parts[2]) {
         php_printf("Key: %s\n", object_address_parts[2]);
     }    
+    */
     
     
-    /* we need the tag, the bucket name */
-    if (tag_parts[1] && object_address_parts[1]) {
-        /* the linked object key is also available */
-        if (object_address_parts[2]) {
+    /* the bucket name, the key and if available the tag */
+    if (object_address_parts[1] && object_address_parts[2]) {
+        php_printf("Creating new LINK\n");
         
-        }
+        /* create new bucket instance */
+        object_init_ex(bucket_instance, riak_ce_riakBucket);
+        riak_bucket__constructor(bucket_instance, client_instance, object_address_parts[1], strlen(object_address_parts[1]) TSRMLS_CC);
+        
+        /* create new link instance */
+        riak_link__constructor(*link_instance, client_instance, bucket_instance, object_address_parts[2], strlen(object_address_parts[2]), tag_parts[1], (tag_parts[1] ? strlen(tag_parts[1]) : 0) TSRMLS_CC);
+
+        result = SUCCESS;
+    } else {
+        result = FAILURE;
     }
-    result = SUCCESS;
+    
     
     
     
     cleanup:
     
+    zval_ptr_dtor(&bucket_instance);
     
     return result;
+}
+
+PHPAPI void riak_link__constructor(zval *link_instance, zval *client_instance, zval *bucket_instance, char *key, int key_len, char *tag, int tag_len TSRMLS_DC) {
+    char *request_header_str = NULL;
+    
+    zend_update_property(riak_ce_riakLink, link_instance, RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, client_instance TSRMLS_CC);
+    zend_update_property(riak_ce_riakLink, link_instance, RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, bucket_instance TSRMLS_CC);
+    zend_update_property_stringl(riak_ce_riakLink, link_instance, RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, key, key_len TSRMLS_CC);
+
+    if (tag) {
+        zend_update_property_stringl(riak_ce_riakLink, link_instance, RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, tag, tag_len TSRMLS_CC);
+    }
+    
+    if (riak_link_create_request_header_str(client_instance, bucket_instance, key, key_len, tag, tag_len, &request_header_str TSRMLS_CC) == SUCCESS) {
+        zend_update_property_stringl(riak_ce_riakLink, link_instance, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, request_header_str, strlen(request_header_str) TSRMLS_CC);
+    }
+
+    
+    if (request_header_str) {
+        free(request_header_str);
+    }
 }
 
 
@@ -264,32 +298,14 @@ PHP_METHOD(riakLink, __construct) {
     char *key;
     int key_len;
     
-    char *tag;
-    int tag_len = 0;
-    
-    char *request_header_str = NULL;
+    char *tag = NULL;
+    int tag_len;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos|s", &client_instance, &bucket_instance, &key, &key_len, &tag, &tag_len) == FAILURE) {
         return;
     }
     
-    
-    zend_update_property(riak_ce_riakLink, getThis(), RIAK_LINK_CLIENT, RIAK_LINK_CLIENT_LEN, client_instance TSRMLS_CC);
-    zend_update_property(riak_ce_riakLink, getThis(), RIAK_LINK_BUCKET, RIAK_LINK_BUCKET_LEN, bucket_instance TSRMLS_CC);
-    zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_KEY, RIAK_LINK_KEY_LEN, key, key_len TSRMLS_CC);
-
-    if (tag_len > 0) {
-        zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_TAG, RIAK_LINK_TAG_LEN, tag, tag_len TSRMLS_CC);
-    }
-    
-    if (riak_link_create_request_header_str(client_instance, bucket_instance, key, key_len, tag, tag_len, &request_header_str TSRMLS_CC) == SUCCESS) {
-        zend_update_property_stringl(riak_ce_riakLink, getThis(), RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, request_header_str, strlen(request_header_str) TSRMLS_CC);
-    }
-
-    
-    if (request_header_str) {
-        free(request_header_str);
-    }
+    riak_link__constructor(getThis(), client_instance, bucket_instance, key, key_len, tag, tag_len TSRMLS_CC);
 }
 
 PHP_METHOD(riakLink, getObject) {

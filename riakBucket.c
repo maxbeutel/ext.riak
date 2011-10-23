@@ -315,19 +315,23 @@ PHPAPI int riak_bucket_set_properties(zval *client_instance, zval *bucket_instan
     return result;
 }
 
+PHPAPI void riak_bucket__constructor(zval *bucket_instance, zval *client_instance, char *name, int name_len TSRMLS_DC) {
+    zend_update_property(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, client_instance TSRMLS_CC);
+    zend_update_property_stringl(riak_ce_riakBucket, bucket_instance, RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, name, name_len TSRMLS_CC);
+}
+
 
 PHP_METHOD(riakBucket, __construct) {    
-    zval *client;
+    zval *client_instance;
     
     char *name;
     int name_len;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "os", &client, &name, &name_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "os", &client_instance, &name, &name_len) == FAILURE) {
         return;
     }
     
-    zend_update_property(riak_ce_riakBucket, getThis(), RIAK_BUCKET_CLIENT, RIAK_BUCKET_CLIENT_LEN, client TSRMLS_CC);
-    zend_update_property_stringl(riak_ce_riakBucket, getThis(), RIAK_BUCKET_NAME, RIAK_BUCKET_NAME_LEN, name, name_len TSRMLS_CC);
+    riak_bucket__constructor(getThis(), client_instance, name, name_len TSRMLS_CC);
 }
 
 PHP_METHOD(riakBucket, getName) {

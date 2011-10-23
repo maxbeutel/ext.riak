@@ -111,6 +111,8 @@ zend_class_entry *riak_ce_riakBucket;
 
 PHPAPI long riak_bucket_local_or_client_setting(zval *client_instance, zval *bucket_instance, long user_value, char *setting_key, int setting_key_len TSRMLS_DC);
 
+PHPAPI void riak_bucket__constructor(zval *bucket_instance, zval *client_instance, char *name, int name_len TSRMLS_DC);
+
 
 PHP_METHOD(riakBucket, __construct);
 
