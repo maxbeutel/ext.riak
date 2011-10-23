@@ -154,22 +154,22 @@ PHPAPI int riak_client_base_address(zval *object, int add_prefix, char **base_ad
 
 
 PHP_METHOD(riakClient, __construct) {
-    char *host;
-    int host_len = 0;
+    char *host = NULL;
+    int host_len;
     
     long port = 0;
     
-    char *prefix;
-    int prefix_len = 0;
+    char *prefix = NULL;
+    int prefix_len;
     
-    char *mapred_prefix;
-    int mapred_prefix_len = 0;
+    char *mapred_prefix = NULL;
+    int mapred_prefix_len;
         
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|slss", &host, &host_len, &port, &prefix, &prefix_len, &mapred_prefix, &mapred_prefix_len) == FAILURE) {
         return;
     }
     
-    if (host_len > 0) {
+    if (host) {
         zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_HOST, RIAK_CLIENT_HOST_LEN, host, host_len TSRMLS_CC);
     }
    
@@ -177,11 +177,11 @@ PHP_METHOD(riakClient, __construct) {
         zend_update_property_long(riak_ce_riakClient, getThis(), RIAK_CLIENT_PORT, RIAK_CLIENT_PORT_LEN, port TSRMLS_CC);
     }
     
-    if (prefix_len > 0) {
+    if (prefix) {
         zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_PREFIX, RIAK_CLIENT_PREFIX_LEN, prefix, prefix_len TSRMLS_CC);
     }
     
-    if (mapred_prefix_len > 0) {
+    if (mapred_prefix) {
         zend_update_property_stringl(riak_ce_riakClient, getThis(), RIAK_CLIENT_MAPRED_PREFIX, RIAK_CLIENT_MAPRED_PREFIX_LEN, mapred_prefix, mapred_prefix_len TSRMLS_CC);
     }
     
