@@ -70,4 +70,29 @@ class RiakBucketTest extends PHPUnit_Framework_TestCase
         $this->assertSame('text/plain', $o->getContentType());
         $this->assertFalse($o->exists());
     }    
+    
+    public function testGetSimpleObject()
+    {
+        $client = new riakClient();
+        $bucket = $client->bucket('__extRiak-bucket_1');
+        $object = $bucket->getObject('key_1');
+        
+        $this->assertInstanceOf('riakObject', $object);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

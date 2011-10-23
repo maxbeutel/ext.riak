@@ -28,4 +28,6 @@ PHP_METHOD(riakLink, getTag);
 
 PHPAPI int riak_link_instances_equal(zval *link_instance_a, zval *link_instance_b TSRMLS_DC);
 
+PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance, char *header_str, int header_str_len, zval **link_instance TSRMLS_DC);
+
 #endif

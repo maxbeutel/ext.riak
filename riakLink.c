@@ -161,6 +161,100 @@ PHPAPI int riak_link_create_request_header_str(zval* client_instance, zval* buck
     return result;
 }
 
+PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance, char *header_str, int header_str_len, zval **link_instance TSRMLS_DC) {
+    int result;
+    
+    char *header_str_copy = NULL;
+    
+    char *tok;
+    char *last;
+    
+    /* prefix, bucket name, key */
+    char *object_address_parts[3] = { NULL, NULL, NULL };
+    int object_address_parts_len = 3;
+    int current_object_address_part = 0;
+    
+    int parse_tag = 0;
+    
+    /* tag name, tag value */
+    char *tag_parts[2] = { NULL, NULL };
+    int tag_parts_len = 2;
+    int current_tag_part = 0;
+    
+    
+    
+    if (asprintf(&header_str_copy, "%s", header_str) < 0) {
+        RIAK_MALLOC_WARNING();
+        result = FAILURE;
+        goto cleanup;
+    }
+   
+            
+    while (tok = strtok_r(header_str_copy, "</>; =\"", &last)) {
+        if (strcmp(tok, "Link:") != 0) {
+            if (parse_tag) {
+                if (current_tag_part < object_address_parts_len) {
+                    tag_parts[current_tag_part] = tok;
+                    current_tag_part++;
+                }
+
+            } else {
+                if (current_object_address_part < object_address_parts_len) {
+                    object_address_parts[current_object_address_part] = tok;
+                    current_object_address_part++;   
+                }
+            }
+            
+            /* found the delimeter between object address and tag key/value pair -> from now on fill tag_parts */
+            if (!parse_tag && *last == ';') {
+                parse_tag = 1;
+            } 
+        }
+        
+        header_str_copy = last;
+    }
+    
+    
+    /* debug */
+    if (tag_parts[0]) {
+        php_printf("tag key: %s\n", tag_parts[0]);
+    }
+    
+    if (tag_parts[1]) {
+        php_printf("tag val: %s\n", tag_parts[1]);
+    }
+    
+    
+    if (object_address_parts[0]) {
+        php_printf("Base address: %s\n", object_address_parts[0]);
+    }
+    
+    if (object_address_parts[1]) {
+        php_printf("Bucket name: %s\n", object_address_parts[1]);
+    }
+      
+    if (object_address_parts[2]) {
+        php_printf("Key: %s\n", object_address_parts[2]);
+    }    
+    
+    
+    /* we need the tag, the bucket name */
+    if (tag_parts[1] && object_address_parts[1]) {
+        /* the linked object key is also available */
+        if (object_address_parts[2]) {
+        
+        }
+    }
+    result = SUCCESS;
+    
+    
+    
+    cleanup:
+    
+    
+    return result;
+}
+
 
 PHP_METHOD(riakLink, __construct) {
     zval *client_instance;
