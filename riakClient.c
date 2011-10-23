@@ -155,15 +155,15 @@ PHPAPI int riak_client_base_address(zval *object, int add_prefix, char **base_ad
 
 PHP_METHOD(riakClient, __construct) {
     char *host;
-    int host_len;
+    int host_len = 0;
     
-    long port;
+    long port = 0;
     
     char *prefix;
-    int prefix_len;
+    int prefix_len = 0;
     
     char *mapred_prefix;
-    int mapred_prefix_len;
+    int mapred_prefix_len = 0;
         
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|slss", &host, &host_len, &port, &prefix, &prefix_len, &mapred_prefix, &mapred_prefix_len) == FAILURE) {
         return;
