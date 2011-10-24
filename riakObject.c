@@ -186,10 +186,12 @@ PHPAPI void riak_object_set_header(zval *object_instance, char *key, char *value
 
 PHPAPI void riak_object_add_link_as_request_header(riakCurlRequestHeader *request_header, zval* link_instance TSRMLS_DC) {
     char *header_str;
+    int header_str_len;
     
     header_str = Z_STRVAL_P(zend_read_property(riak_ce_riakLink, link_instance, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, 0 TSRMLS_CC));
+    header_str_len = Z_STRLEN_P(zend_read_property(riak_ce_riakLink, link_instance, RIAK_LINK_REQUESTHEADER_STR, RIAK_LINK_REQUESTHEADER_STR_LEN, 0 TSRMLS_CC));
     
-    riak_curl_add_request_header_str(request_header, header_str);    
+    riak_curl_add_request_header_str(request_header, header_str, header_str_len);    
 }
 
 
@@ -262,15 +264,14 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     
     php_printf("Object url: %s\n", object_url);
  
-    /* fetch json response */
     client_id = Z_STRVAL_P(zend_read_property(riak_ce_riakClient, client_instance, RIAK_CLIENT_CLIENT_ID, RIAK_CLIENT_CLIENT_ID_LEN, 0 TSRMLS_CC));
-    
+   
+ 
     if (riak_curl_fetch_json_response(client_id, object_url, &object_data, request_header TSRMLS_CC) == SUCCESS && Z_TYPE_P(object_data) != IS_NULL) {
-        /* create object instance */
+   
         object_init_ex(*return_value, riak_ce_riakObject); 
         CALL_METHOD3(riakObject, __construct, *return_value, *return_value, client_instance, bucket_instance, key);
         
-        /* set data property */
         zend_update_property(riak_ce_riakObject, *return_value, RIAK_OBJECT_DATA, RIAK_OBJECT_DATA_LEN, object_data TSRMLS_CC);
         
         
@@ -280,45 +281,35 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
             links = zend_read_property(riak_ce_riakObject, *return_value, RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
             
             for (iter = riak_curl_add_request_header_start(request_header); iter != riak_curl_add_request_header_end(request_header); ++iter) {
-                /* link  */
-                if (strncmp(*iter, "Link:", strlen("Link:")) == 0) {
+                if (strncmp(*iter, "Link:", strlen("Link:")) == 0) { 
                     zval *link_instance;
                     MAKE_STD_ZVAL(link_instance);
                     object_init_ex(link_instance, riak_ce_riakLink); 
                     
                     if (riak_link_create_link_instance_from_raw_string(client_instance, *iter, strlen(*iter), &link_instance TSRMLS_CC) == SUCCESS) {
                         add_next_index_zval(links, link_instance);
-                    /* @FIXME is this ok to only free link instance when creation failed? */    
                     } else {
                         zval_ptr_dtor(&link_instance);
                     }  
                 }
                 
-                /* header: content type */
                 else if (strncmp(*iter, "Content-Type: ", strlen("Content-Type: ")) == 0) {
                     riak_object_set_header_from_raw_string(*return_value, *iter, strlen(*iter), strlen("Content-Type: "), RIAK_OBJECT_HEADER_CONTENTTYPE TSRMLS_CC);
                 }
                 
-                /* header: vclock */
                 else if (strncmp(*iter, "X-Riak-Vclock: ", strlen("X-Riak-Vclock: ")) == 0) {
                     riak_object_set_header_from_raw_string(*return_value, *iter, strlen(*iter), strlen("X-Riak-Vclock: "), RIAK_OBJECT_HEADER_VCLOCK TSRMLS_CC);
                 } 
                 
-                /* header: location (key will be exchanged!) */
                 else if (strncmp(*iter, "Location: ", strlen("Location: ")) == 0) {
                     riak_object_set_header_from_raw_string(*return_value, *iter, strlen(*iter), strlen("Location: "), RIAK_OBJECT_HEADER_LOCATION TSRMLS_CC);
                 }
-                
-                /* discard all other headers */
             }
         }
         
-        /* 
-            TODO populate result object 
-                - siblings (?)
-                - handle status 300 multiple choice
-        */
+        /* @TODO handle siblings/300 multiple choice response status */
         
+       
         result = SUCCESS;
     } else {
         result = FAILURE;
@@ -590,7 +581,7 @@ PHP_METHOD(riakObject, store) {
     /* add additional headers */
     request_header = riak_curl_create_request_header();
     
-    riak_curl_add_request_header_str(request_header, "Accept: text/plain, */*; q=0.5");
+    riak_curl_add_request_header_str(request_header, "Accept: text/plain, */*; q=0.5", strlen("Accept: text/plain, */*; q=0.5"));
     
     if (riak_object_get_header(getThis(), RIAK_OBJECT_HEADER_VCLOCK, RIAK_OBJECT_HEADER_VCLOCK_SIZE, &vclock_header TSRMLS_CC) == SUCCESS) {
         vclock = Z_STRVAL_P(vclock_header);
@@ -600,7 +591,7 @@ PHP_METHOD(riakObject, store) {
             goto cleanup; 
         }
         
-        riak_curl_add_request_header_str(request_header, vclock_request_header);
+        riak_curl_add_request_header_str(request_header, vclock_request_header, strlen(vclock_request_header));
     }
     
     links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
@@ -650,7 +641,7 @@ PHP_METHOD(riakObject, store) {
             
             php_printf("Adding custom header: %s\n", content_type_request_header);
         
-            riak_curl_add_request_header_str(request_header, content_type_request_header);
+            riak_curl_add_request_header_str(request_header, content_type_request_header, strlen(content_type_request_header));
         }
         
         if (zend_is_true(zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN, 0 TSRMLS_CC))) {

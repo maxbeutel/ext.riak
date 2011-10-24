@@ -190,9 +190,8 @@ PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance,
         result = FAILURE;
         goto cleanup;
     }
-   
-            
-    while (tok = strtok_r(header_str_copy, "</>; =\"", &last)) {
+     
+    for (tok = strtok_r(header_str_copy, "</>; =\"", &last); tok; tok = strtok_r(NULL, "</>; =\"", &last)) {
         if (strcmp(tok, "Link:") != 0) {
             if (parse_tag) {
                 if (current_tag_part < object_address_parts_len) {
@@ -212,8 +211,6 @@ PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance,
                 parse_tag = 1;
             } 
         }
-        
-        header_str_copy = last;
     }
     
     
@@ -262,6 +259,10 @@ PHPAPI int riak_link_create_link_instance_from_raw_string(zval *client_instance,
     
     
     cleanup:
+    
+    if (header_str_copy) {
+        free(header_str_copy);
+    }        
     
     zval_ptr_dtor(&bucket_instance);
     

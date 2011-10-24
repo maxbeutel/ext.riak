@@ -43,8 +43,7 @@ PHPAPI void riak_curl_delete_request_header(riakCurlRequestHeader* request_heade
     free(request_header);
 }
 
-/* @TODO riak_curl_add_request_header_str should internally copy the string!  */
-PHPAPI int riak_curl_add_request_header_str(riakCurlRequestHeader* request_header, char* str) {
+PHPAPI int riak_curl_add_request_header_str(riakCurlRequestHeader* request_header, char* str, int str_len) {
     size_t num = request_header->num;
     
     if (num >= request_header->size) {
@@ -58,8 +57,9 @@ PHPAPI int riak_curl_add_request_header_str(riakCurlRequestHeader* request_heade
             request_header->str = (char**)new_request_header;
         }
     }
+    
 
-    request_header->str[num] = str;
+    request_header->str[num] = strndup(str, str_len);
     ++request_header->num;
 
     return SUCCESS;
@@ -181,16 +181,8 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
                 goto cleanup;
             }
             
-            for (header_line = strtok_r(response_header_copy, "\r\n", &last); header_line; header_line = strtok_r(NULL, "\r\n", &last)) {
-                char *cur_copy = NULL;
-                
-                if (asprintf(&cur_copy, "%s", header_line) < 0) {
-                    RIAK_MALLOC_WARNING();
-                    result = FAILURE;
-                    goto cleanup;
-                }
-                
-                riak_curl_add_request_header_str(response_header, cur_copy);
+            for (header_line = strtok_r(response_header_copy, "\r\n", &last); header_line; header_line = strtok_r(NULL, "\r\n", &last)) {                
+                riak_curl_add_request_header_str(response_header, header_line, strlen(header_line));
             }
         }
         
@@ -333,7 +325,7 @@ PHPAPI int riak_curl_send_post_json_request(char *client_id, char *request_url, 
     riak_curl_data_to_json_str(data, &json_struct TSRMLS_CC);
     
     if (request_header) {
-        riak_curl_add_request_header_str(request_header, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON);
+        riak_curl_add_request_header_str(request_header, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON_LEN);
     }
     
     return riak_curl_send_write_request("POST", client_id, request_url, json_struct, request_header TSRMLS_CC);
@@ -345,7 +337,7 @@ PHPAPI int riak_curl_send_put_json_request(char *client_id, char *request_url, z
     riak_curl_data_to_json_str(data, &json_struct TSRMLS_CC);
     
     if (request_header) {
-        riak_curl_add_request_header_str(request_header, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON);
+        riak_curl_add_request_header_str(request_header, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON, RIAK_CURL_REQUESTHEADER_CONTENTTYPE_JSON_LEN);
     }
     
     return riak_curl_send_write_request("PUT", client_id, request_url, json_struct, request_header TSRMLS_CC);
