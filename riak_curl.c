@@ -33,10 +33,17 @@ PHPAPI riakCurlRequestHeader* riak_curl_create_request_header() {
 }
 
 PHPAPI void riak_curl_delete_request_header(riakCurlRequestHeader* request_header) {
+    char **iter;
+    
+    for (iter = riak_curl_add_request_header_start(request_header); iter != riak_curl_add_request_header_end(request_header); ++iter) {
+        free(*iter);
+    }
+    
     free(request_header->str);
     free(request_header);
 }
 
+/* @TODO riak_curl_add_request_header_str should internally copy the string!  */
 PHPAPI int riak_curl_add_request_header_str(riakCurlRequestHeader* request_header, char* str) {
     size_t num = request_header->num;
     
@@ -160,17 +167,30 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
-        asprintf(response_body, "%s", response_body_content.str);
+        if (asprintf(response_body, "%s", response_body_content.str) < 0) {
+            RIAK_MALLOC_WARNING();
+            result = FAILURE;
+            goto cleanup;
+        }
 
         /* parse headers in array struct */
-        /* @FIXME uhm, do we need to copy headerline? Is this freed when response_headers is destroyed? */
         if (response_header) {
-            asprintf(&response_header_copy, "%s", response_header_content.str);
+            if (asprintf(&response_header_copy, "%s", response_header_content.str) < 0) {
+                RIAK_MALLOC_WARNING();
+                result = FAILURE;
+                goto cleanup;
+            }
             
-            while (header_line = strtok_r(response_header_copy, "\r\n", &last)) {
-                riak_curl_add_request_header_str(response_header, header_line);
+            for (header_line = strtok_r(response_header_copy, "\r\n", &last); header_line; header_line = strtok_r(NULL, "\r\n", &last)) {
+                char *cur_copy = NULL;
                 
-                response_header_copy = last;
+                if (asprintf(&cur_copy, "%s", header_line) < 0) {
+                    RIAK_MALLOC_WARNING();
+                    result = FAILURE;
+                    goto cleanup;
+                }
+                
+                riak_curl_add_request_header_str(response_header, cur_copy);
             }
         }
         
@@ -198,6 +218,10 @@ PHPAPI int riak_curl_fetch_response(char *client_id, char *request_url, char **r
     
     
     cleanup:
+        
+    if (response_header_copy) {
+        free(response_header_copy);
+    }
                 
     if (client_id_header) {
         free(client_id_header);
