@@ -345,7 +345,9 @@ PHP_METHOD(riakObject, __construct) {
     char *key;
     int key_len;
 
-    zval *headers, *links, *siblings;
+    zval *headers;
+    zval *links;
+    zval *siblings;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oos", &client, &bucket, &key, &key_len) == FAILURE) {
         return;
@@ -372,7 +374,7 @@ PHP_METHOD(riakObject, __construct) {
     MAKE_STD_ZVAL(siblings);
     array_init(siblings);
     
-    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, links TSRMLS_CC);
+    zend_update_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_SIBLINGS, RIAK_OBJECT_SIBLINGS_LEN, siblings TSRMLS_CC);
     
     zval_ptr_dtor(&siblings);    
 }
@@ -455,17 +457,17 @@ PHP_METHOD(riakObject, addLink) {
         return;
     }
     
-
     client_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_CLIENT, RIAK_OBJECT_CLIENT_LEN, 0 TSRMLS_CC);
-    bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);
-        
+    bucket_instance = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_BUCKET, RIAK_OBJECT_BUCKET_LEN, 0 TSRMLS_CC);    
+    links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
+    
     MAKE_STD_ZVAL(link_instance);
     object_init_ex(link_instance, riak_ce_riakLink);
-   
+    
     riak_link__constructor(link_instance, client_instance, bucket_instance, key, key_len, tag, tag_len TSRMLS_CC);
     
+    
     /* remove existing equal link if exists */
-    links = zend_read_property(riak_ce_riakObject, getThis(), RIAK_OBJECT_LINKS, RIAK_OBJECT_LINKS_LEN, 0 TSRMLS_CC);
     links_hash = Z_ARRVAL_P(links);
     
     for (zend_hash_internal_pointer_reset_ex(links_hash, &pointer); zend_hash_get_current_data_ex(links_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(links_hash, &pointer)) {
@@ -487,8 +489,11 @@ PHP_METHOD(riakObject, addLink) {
             }
         }
     } /* holy arrow code, batman! */
-    
+
+
+    /* add link instance */
     add_next_index_zval(links, link_instance);
+    
     
     RIAK_RETURN_SELF();
 }

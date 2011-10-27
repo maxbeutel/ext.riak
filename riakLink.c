@@ -116,16 +116,16 @@ PHPAPI int riak_link_create_request_header_str(zval* client_instance, zval* buck
     char *bucket_name;
     int bucket_name_len;
    
-    char *prefix_encoded;
+    char *prefix_encoded = NULL;
     int prefix_encoded_len;
     
-    char *bucket_name_encoded;
+    char *bucket_name_encoded = NULL;
     int bucket_name_encoded_len;
         
-    char *key_encoded;
+    char *key_encoded = NULL;
     int key_encoded_len;
     
-    char *tag_encoded;
+    char *tag_encoded = NULL;
     int tag_encoded_len;
     
     int result;
@@ -144,7 +144,7 @@ PHPAPI int riak_link_create_request_header_str(zval* client_instance, zval* buck
     
     key_encoded = php_url_encode(key, key_len, &key_encoded_len);    
     
-    if (tag_len > 0) {
+    if (tag) {
         tag_encoded = php_url_encode(tag, tag_len, &tag_encoded_len);  
     } else {
         tag_encoded = "";
@@ -156,6 +156,23 @@ PHPAPI int riak_link_create_request_header_str(zval* client_instance, zval* buck
         RIAK_MALLOC_WARNING();
     } else {
         result = SUCCESS;
+    }
+    
+    
+    if (prefix_encoded) {
+        efree(prefix_encoded);
+    }
+    
+    if (bucket_name_encoded) {
+        efree(bucket_name_encoded);
+    }
+    
+    if (key_encoded) {
+        efree(key_encoded);
+    }
+    
+    if (tag && tag_encoded) {
+        efree(tag_encoded);
     }
     
     return result;
