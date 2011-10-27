@@ -317,6 +317,10 @@ PHPAPI int riak_object_fetch_initialized_object(zval *client_instance, zval *buc
     
 
     
+    if (result == SUCCESS) {
+        zend_update_property_bool(riak_ce_riakObject, *return_value, RIAK_OBJECT_EXISTS, RIAK_OBJECT_EXISTS_LEN, 1 TSRMLS_CC);
+    }
+    
     
     cleanup:
     
